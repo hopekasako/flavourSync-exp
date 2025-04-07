@@ -109,7 +109,7 @@ const state = {
 async function connectToDevice() {
     try {
         state.port = await navigator.serial.requestPort();
-        await state.port.open({ baudRate: 9600 });
+        await state.port.open({ baudRate: 115200 });
         
         state.writer = state.port.writable.getWriter();
         state.reader = state.port.readable.getReader();
