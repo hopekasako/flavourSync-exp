@@ -50,7 +50,7 @@ const questionsData = {
                 question_id: 2,
                 question: "What do you think the smell is from the following options?",
                 type: "radio",
-                options: ["Lemon", "Peach", "Coconut", "Coffee", "Milk", "Orange", "Unable to perceive"]
+                options: ["Lemon", "Peach", "Starfruit", "Coffee", "Milk", "Orange", "Unable to perceive"]
             }
         ],
         section_2: [
