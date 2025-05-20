@@ -1,21 +1,263 @@
+// Base sequences for each phase (these will be randomized per participant)
+const baseSequences = {
+    smell: [
+        [1, 2, 3, 4, 5], // Trial 1
+        [2, 3, 1, 5, 4], // Trial 2
+        [4, 5, 2, 1, 3]  // Trial 3
+    ],
+    taste: [
+        [1, 2, 3, 4, 5], // Trial 1
+        [2, 3, 1, 5, 4], // Trial 2
+        [4, 5, 2, 1, 3]  // Trial 3
+    ],
+    flavor: [
+        [1, 2], // Trial 1
+        [2, 1], // Trial 2
+        [1, 2]  // Trial 3
+    ]
+};
+
+// Experiment configuration
+const experimentConfig = {
+    phases: {
+        smell: {
+            name: "Smell Phase",
+            stimuli: [
+                { id: 1, name: "Starfruit" },
+                { id: 2, name: "Lemon" },
+                { id: 3, name: "Vanilla" },
+                { id: 4, name: "Coffee" },
+                { id: 5, name: "Water" }
+            ],
+            questions: [
+                {
+                    id: "liking",
+                    type: "slider",
+                    question: "How much do you like this?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Extreme Dislike", "Extreme Like"]
+                },
+                {
+                    id: "description",
+                    type: "text",
+                    question: "Please describe what you experience:"
+                },
+                {
+                    id: "intensity",
+                    type: "slider",
+                    question: "How intense is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sweetness",
+                    type: "slider",
+                    question: "How sweet is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sourness",
+                    type: "slider",
+                    question: "How sour is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "saltiness",
+                    type: "slider",
+                    question: "How salty is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "bitterness",
+                    type: "slider",
+                    question: "How bitter is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "umami",
+                    type: "slider",
+                    question: "How umami is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                }
+            ]
+        },
+        taste: {
+            name: "Taste Phase",
+            stimuli: [
+                { id: 1, name: "Super Sweet" },
+                { id: 2, name: "Medium Sweet" },
+                { id: 3, name: "Little Sweet" },
+                { id: 4, name: "Sour" },
+                { id: 5, name: "Bitter" }
+            ],
+            questions: [
+                {
+                    id: "liking",
+                    type: "slider",
+                    question: "How much do you like this?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Extreme Dislike", "Extreme Like"]
+                },
+                {
+                    id: "description",
+                    type: "text",
+                    question: "Please describe what you experience:"
+                },
+                {
+                    id: "intensity",
+                    type: "slider",
+                    question: "How intense is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sweetness",
+                    type: "slider",
+                    question: "How sweet is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sourness",
+                    type: "slider",
+                    question: "How sour is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "saltiness",
+                    type: "slider",
+                    question: "How salty is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "bitterness",
+                    type: "slider",
+                    question: "How bitter is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "umami",
+                    type: "slider",
+                    question: "How umami is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                }
+            ]
+        },
+        flavor: {
+            name: "Flavor Phase",
+            parts: ["orthonasal", "retronasal"],
+            stimuli: [
+                { id: 1, name: "Lychee Tea" },
+                { id: 2, name: "Lemon Tea" }
+            ],
+            questions: [
+                {
+                    id: "liking",
+                    type: "slider",
+                    question: "How much do you like this?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Extreme Dislike", "Extreme Like"]
+                },
+                {
+                    id: "description",
+                    type: "text",
+                    question: "Please describe what you experience:"
+                },
+                {
+                    id: "intensity",
+                    type: "slider",
+                    question: "How intense is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sweetness",
+                    type: "slider",
+                    question: "How sweet is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "sourness",
+                    type: "slider",
+                    question: "How sour is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "saltiness",
+                    type: "slider",
+                    question: "How salty is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "bitterness",
+                    type: "slider",
+                    question: "How bitter is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                },
+                {
+                    id: "umami",
+                    type: "slider",
+                    question: "How umami is it?",
+                    min: 0,
+                    max: 100,
+                    labels: ["Barely Detectable", "Strongest Imaginable"]
+                }
+            ]
+        }
+    }
+};
+
 // Main experiment data
 const experimentData = {
     sections: {
-        section_1: [
+        section_1: [ // Smell Phase
             { experiment_id: 1, command_string: "1 1 5000" },
             { experiment_id: 2, command_string: "2 1 5000" },
             { experiment_id: 3, command_string: "3 1 5000" },
             { experiment_id: 4, command_string: "4 1 5000" },
             { experiment_id: 5, command_string: "5 1 5000" }
         ],
-        section_2: [
+        section_2: [ // Taste Phase
             { experiment_id: 1, command_string: "1 1 5000 200" },
             { experiment_id: 2, command_string: "2 1 5000 200" },
             { experiment_id: 3, command_string: "3 1 5000 200" },
             { experiment_id: 4, command_string: "4 1 5000 200" },
             { experiment_id: 5, command_string: "5 1 5000 200" }
         ],
-        section_3: [
+        section_3: [ // Flavor Phase
             { experiment_id: 1, part: "orthonasal", commands: [
                 { command_string: "1 1 6000", delay: 0 },
                 { command_string: "1 1 3000 200", delay: 3000 }
@@ -36,74 +278,113 @@ const experimentData = {
     }
 };
 
-// Questions data
-const questionsData = {
-    sections: {
-        section_1: [
-            {
-                question_id: 1,
-                question: "How much do you like this smell experiment? (1-10)",
-                type: "slider",
-                options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
-            },
-            {
-                question_id: 2,
-                question: "What do you think the smell is from the following options?",
-                type: "radio",
-                options: ["Lemon", "Peach", "Starfruit", "Coffee", "Milk", "Orange", "Unable to perceive"]
-            }
-        ],
-        section_2: [
-            {
-                question_id: 1,
-                question: "How much do you like this taste experiment? (1-10)",
-                type: "slider",
-                options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
-            },
-            {
-                question_id: 2,
-                question: "What are the characteristics of the taste you just experienced?",
-                type: "radio",
-                options: ["Sweet", "Sour", "Salty", "Bitter", "Umami"]
-            },
-            {
-                question_id: 3,
-                question: "How intense is it?",
-                type: "radio",
-                options: ["Little", "Medium", "Very"]
-            }
-        ],
-        section_3: [
-            {
-                question_id: 1,
-                question: "How much do you like this flavor experiment? (1-10)",
-                type: "slider",
-                options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
-            },
-            {
-                question_id: 2,
-                question: "What does this scent remind you of?",
-                type: "radio",
-                options: ["Orange Juice", "Lemon Juice", "Milk", "Lychee Juice", "Coca-Cola"]
-            }
-        ]
-    }
+// Participant sequences (20 sequences for each participant)
+const participantSequences = {
+    1: {
+        smell: [[1,2,3,4,5], [2,3,1,5,4], [4,5,2,1,3]],
+        taste: [[1,2,3,4,5], [2,3,1,5,4], [4,5,2,1,3]],
+        flavor: {
+            orthonasal: [[1,2], [2,1]],
+            retronasal: [[1,2], [2,1]]
+        }
+    },
+    2: {
+        smell: [[2,3,4,5,1], [3,4,5,1,2], [5,1,2,3,4]],
+        taste: [[2,3,4,5,1], [3,4,5,1,2], [5,1,2,3,4]],
+        flavor: {
+            orthonasal: [[2,1], [1,2]],
+            retronasal: [[2,1], [1,2]]
+        }
+    },
+    // Add sequences for participants 3-16 here
 };
 
 // App state
 const state = {
-    currentSection: 1,
-    currentTest: 1,
-    answers: {
-        section_1: {},
-        section_2: {},
-        section_3: {}
-    },
+    participantNumber: null,
+    currentPhase: 'smell',
+    currentTrial: 1,
+    currentStimulus: 1,
+    currentQuestion: 1,
+    answers: {},
     port: null,
     writer: null,
     reader: null,
-    testStarted: false
+    testStarted: false,
+    trialSequences: null,
+    currentFlavorPart: 'orthonasal', // 'orthonasal' or 'retronasal'
+    currentFlavorTrial: 1, // 1 or 2
 };
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// Get sequence for current participant
+function getParticipantSequence() {
+    return participantSequences[state.participantNumber] || participantSequences[1]; // Default to sequence 1 if not found
+}
+
+// Initialize trial sequences for the participant
+function initializeTrialSequences() {
+    const seq = getParticipantSequence();
+    state.trialSequences = seq;
+    // Reset flavor part/trial/stimulus
+    state.currentFlavorPart = 'orthonasal';
+    state.currentFlavorTrial = 1;
+    state.currentStimulus = 1;
+}
+
+// Get current stimulus based on trial sequence
+function getCurrentStimulus() {
+    const phase = state.currentPhase;
+    if (phase === 'flavor') {
+        const part = state.currentFlavorPart;
+        const trial = state.currentFlavorTrial - 1;
+        const stimulusIndex = state.currentStimulus - 1;
+        const stimulusId = state.trialSequences[phase][part][trial][stimulusIndex];
+        return experimentConfig.phases[phase].stimuli.find(s => s.id === stimulusId);
+    } else {
+        const trial = state.currentTrial - 1;
+        const stimulusIndex = state.currentStimulus - 1;
+        const stimulusId = state.trialSequences[phase][trial][stimulusIndex];
+        return experimentConfig.phases[phase].stimuli.find(s => s.id === stimulusId);
+    }
+}
+
+// Get command for current stimulus
+function getCurrentCommand() {
+    const phase = state.currentPhase;
+    const stimulus = getCurrentStimulus();
+    if (phase === 'smell') {
+        return experimentData.sections.section_1.find(s => s.experiment_id === stimulus.id)?.command_string;
+    } else if (phase === 'taste') {
+        return experimentData.sections.section_2.find(s => s.experiment_id === stimulus.id)?.command_string;
+    } else if (phase === 'flavor') {
+        const part = state.currentFlavorPart;
+        let flavorStimulus;
+        if (part === 'orthonasal') {
+            // Orthonasal: experiment_id 1 or 2
+            flavorStimulus = experimentData.sections.section_3.find(s => s.part === 'orthonasal' && s.experiment_id === stimulus.id);
+        } else {
+            // Retronasal: map stimulus.id 1->3, 2->4
+            let retroId = stimulus.id === 1 ? 3 : 4;
+            flavorStimulus = experimentData.sections.section_3.find(s => s.part === 'retronasal' && s.experiment_id === retroId);
+        }
+        if (flavorStimulus) {
+            return flavorStimulus.commands.map(cmd => ({
+                command: cmd.command_string,
+                delay: cmd.delay
+            }));
+        }
+    }
+    return null;
+}
 
 // Serial connection
 async function connectToDevice() {
@@ -115,10 +396,10 @@ async function connectToDevice() {
         state.reader = state.port.readable.getReader();
         
         document.getElementById('connection-status').textContent = 'Connected';
-        document.getElementById('connection-status').classList.add('connected');
+        document.getElementById('connection-status').classList.remove('bg-red-100', 'text-red-600');
+        document.getElementById('connection-status').classList.add('bg-green-100', 'text-green-600');
         document.getElementById('start-experiment-btn').disabled = false;
         
-        // Start reading from the serial port
         readFromSerial();
         
     } catch (error) {
@@ -131,10 +412,7 @@ async function readFromSerial() {
     try {
         while (true) {
             const { value, done } = await state.reader.read();
-            if (done) {
-                break;
-            }
-            // Process incoming data if needed
+            if (done) break;
             console.log('Received from device:', new TextDecoder().decode(value));
         }
     } catch (error) {
@@ -161,136 +439,290 @@ async function sendCommand(command) {
 
 // UI handlers
 function showScreen(screenId) {
-    // Hide all screens
+    document.getElementById('participant-screen').classList.add('hidden');
     document.getElementById('welcome-screen').classList.add('hidden');
     document.getElementById('test-screen').classList.add('hidden');
     document.getElementById('survey-screen').classList.add('hidden');
+    document.getElementById('break-screen').classList.add('hidden');
     document.getElementById('completed-screen').classList.add('hidden');
     
-    // Show requested screen
     document.getElementById(screenId).classList.remove('hidden');
 }
 
-function updateProgress() {
-    const totalSections = Object.keys(experimentData.sections).length;
-    const testsInCurrentSection = experimentData.sections[`section_${state.currentSection}`].length;
+function updateExperimentStatus() {
+    const phase = experimentConfig.phases[state.currentPhase];
+    const totalTrials = 3;
+    const totalStimuli = phase.stimuli.length;
     
-    const overallProgress = ((state.currentSection - 1) / totalSections) + 
-                            (state.currentTest / testsInCurrentSection / totalSections);
+    // Update welcome screen
+    document.getElementById('current-phase').textContent = phase.name;
+    document.getElementById('current-trial').textContent = `Trial ${state.currentTrial} of ${totalTrials}`;
+    document.getElementById('current-stimulus').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
     
-    document.getElementById('progress').style.width = `${overallProgress * 100}%`;
-    document.getElementById('current-test').textContent = state.currentTest;
-    document.getElementById('total-tests').textContent = testsInCurrentSection;
+    // Update test screen
+    document.getElementById('section-title').textContent = `${phase.name}`;
+    document.getElementById('phase-indicator').textContent = phase.name;
+    document.getElementById('trial-indicator').textContent = `${state.currentTrial} of ${totalTrials}`;
+    document.getElementById('stimulus-indicator').textContent = `${state.currentStimulus} of ${totalStimuli}`;
+    
+    // Update participant status
+    document.getElementById('participant-status').textContent = `Participant: ${state.participantNumber}`;
 }
 
 function updateTestInstructions() {
-    const sectionKey = `section_${state.currentSection}`;
+    const phase = experimentConfig.phases[state.currentPhase];
+    const stimulus = getCurrentStimulus();
     let instructions = '';
     
-    document.getElementById('section-title').textContent = `Section ${state.currentSection}: ${state.currentSection === 1 ? 'Smell' : state.currentSection === 2 ? 'Taste' : 'Flavor'}`;
+    // Log the current sequence for testing
+    console.log('Current Phase:', state.currentPhase);
+    console.log('Current Trial:', state.currentPhase === 'flavor' ? state.currentFlavorTrial : state.currentTrial);
+    console.log('Current Stimulus ID:', stimulus.id);
+    console.log('Current Stimulus Name:', stimulus.name);
+    if (state.currentPhase === 'flavor') {
+        const part = state.currentFlavorPart;
+        const trial = state.currentFlavorTrial - 1;
+        console.log('Full Trial Sequence:', state.trialSequences.flavor[part][trial]);
+    } else {
+        console.log('Full Trial Sequence:', state.trialSequences[state.currentPhase][state.currentTrial - 1]);
+    }
     
-    if (state.currentSection === 1) {
-        instructions = "Put your nose near the device. Click the button to experience the smell when you are ready. The smell will be delivered in 5 seconds.";
-    } else if (state.currentSection === 2) {
-        instructions = "Put your mouth in the mouth piece. Click the button to experience the taste when you are ready. The taste will be delivered in 5 seconds.";
-    } else if (state.currentSection === 3) {
-        const test = experimentData.sections[sectionKey][state.currentTest - 1];
-        if (test.part === "orthonasal") {
-            instructions = "Orthonasal Test: Put your nose near the device and then your mouth in the mouth piece. Click when ready. You will smell and then taste.";
-        } else {
-            instructions = "Retronasal Test: Put your mouth in the mouth piece and your nose near the device. Click when ready. The flavor will be delivered simultaneously.";
-        }
+    if (state.currentPhase === 'smell') {
+        instructions = `Please position your nose near the device. Click the button when ready to experience the smell.`;
+    } else if (state.currentPhase === 'taste') {
+        instructions = `Please position your mouth in the mouthpiece. Click the button when ready to experience the taste.`;
+    } else if (state.currentPhase === 'flavor') {
+        instructions = `Please position your nose near the device and mouth in the mouthpiece. Click the button when ready to experience the flavor.`;
     }
     
     document.getElementById('test-instructions').textContent = instructions;
 }
 
 function createSurveyQuestions() {
-    const sectionKey = `section_${state.currentSection}`;
+    const phase = experimentConfig.phases[state.currentPhase];
+    if (!phase || !phase.questions || phase.questions.length === 0) {
+        console.error('No questions found for phase:', state.currentPhase);
+        return;
+    }
+    
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
     
-    document.getElementById('survey-title').textContent = `Survey - Section ${state.currentSection}, Test ${state.currentTest}`;
+    document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
     
-    questionsData.sections[sectionKey].forEach(question => {
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'question';
+    // No progress bar
+    
+    // Show only the current question
+    const questionsContainer = document.createElement('div');
+    questionsContainer.id = 'questions-container';
+    surveyContainer.appendChild(questionsContainer);
+    
+    showQuestion(state.currentQuestion);
+}
+
+function showQuestion(questionNumber) {
+    const phase = experimentConfig.phases[state.currentPhase];
+    const question = phase.questions[questionNumber - 1];
+    if (!question) {
+        console.error('Question not found:', questionNumber);
+        return;
+    }
+    const questionsContainer = document.getElementById('questions-container');
+    questionsContainer.innerHTML = '';
+    state.currentQuestion = questionNumber;
+    
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'bg-white p-8 rounded-lg shadow-lg space-y-6';
+    
+    const questionText = document.createElement('p');
+    questionText.className = 'font-semibold text-lg text-gray-800 mb-2';
+    questionText.textContent = question.question;
+    questionDiv.appendChild(questionText);
+    
+    if (question.type === 'slider') {
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'space-y-2';
         
-        const questionText = document.createElement('p');
-        questionText.textContent = question.question;
-        questionDiv.appendChild(questionText);
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = question.min;
+        slider.max = question.max;
+        slider.value = (question.min + question.max) / 2;
+        slider.className = 'w-full accent-primary';
+        slider.id = `question-${question.id}`;
         
-        if (question.type === 'slider') {
-            const sliderContainer = document.createElement('div');
-            sliderContainer.className = 'slider-container';
-            
-            const slider = document.createElement('input');
-            slider.type = 'range';
-            slider.min = '1';
-            slider.max = '10';
-            slider.value = '5';
-            slider.className = 'slider';
-            slider.id = `question-${question.question_id}`;
-            
-            const sliderValue = document.createElement('div');
-            sliderValue.className = 'slider-value';
-            sliderValue.textContent = slider.value;
-            
-            slider.addEventListener('input', () => {
-                sliderValue.textContent = slider.value;
-            });
-            
-            sliderContainer.appendChild(slider);
-            sliderContainer.appendChild(sliderValue);
-            questionDiv.appendChild(sliderContainer);
-        } else if (question.type === 'radio') {
-            const optionsContainer = document.createElement('div');
-            optionsContainer.className = 'radio-options';
-            
-            question.options.forEach((option, index) => {
-                const radioOption = document.createElement('label');
-                radioOption.className = 'radio-option';
-                
-                const radio = document.createElement('input');
-                radio.type = 'radio';
-                radio.name = `question-${question.question_id}`;
-                radio.value = option;
-                radio.id = `question-${question.question_id}-option-${index}`;
-                
-                const optionText = document.createTextNode(` ${option}`);
-                
-                radioOption.appendChild(radio);
-                radioOption.appendChild(optionText);
-                optionsContainer.appendChild(radioOption);
-            });
-            
-            questionDiv.appendChild(optionsContainer);
-        }
+        const labelsContainer = document.createElement('div');
+        labelsContainer.className = 'flex justify-between text-sm text-gray-500';
         
-        surveyContainer.appendChild(questionDiv);
-    });
+        const minLabel = document.createElement('span');
+        minLabel.textContent = question.labels[0];
+        
+        const maxLabel = document.createElement('span');
+        maxLabel.textContent = question.labels[1];
+        
+        labelsContainer.appendChild(minLabel);
+        labelsContainer.appendChild(maxLabel);
+        
+        const valueDisplay = document.createElement('div');
+        valueDisplay.className = 'text-center font-medium text-primary';
+        valueDisplay.textContent = slider.value;
+        
+        slider.addEventListener('input', () => {
+            valueDisplay.textContent = slider.value;
+        });
+        
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(labelsContainer);
+        sliderContainer.appendChild(valueDisplay);
+        questionDiv.appendChild(sliderContainer);
+    } else if (question.type === 'text') {
+        const textInput = document.createElement('textarea');
+        textInput.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm';
+        textInput.rows = 3;
+        textInput.id = `question-${question.id}`;
+        textInput.placeholder = 'Type your response here...';
+        questionDiv.appendChild(textInput);
+    }
+    
+    // Unified action buttons row
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'flex flex-wrap gap-4 mt-6 justify-center';
+    
+    const submitButton = document.createElement('button');
+    submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
+    submitButton.textContent = 'Submit Answer';
+    submitButton.onclick = () => submitCurrentQuestion();
+    buttonRow.appendChild(submitButton);
+    
+    const skipQuestionButton = document.createElement('button');
+    skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
+    skipQuestionButton.textContent = 'Skip Question';
+    skipQuestionButton.onclick = () => skipQuestion();
+    buttonRow.appendChild(skipQuestionButton);
+    
+    const skipTrialButton = document.createElement('button');
+    skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
+    skipTrialButton.textContent = 'Skip Trial';
+    skipTrialButton.onclick = skipTrial;
+    buttonRow.appendChild(skipTrialButton);
+    
+    const skipPhaseButton = document.createElement('button');
+    skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
+    skipPhaseButton.textContent = 'Skip Phase';
+    skipPhaseButton.onclick = skipPhase;
+    buttonRow.appendChild(skipPhaseButton);
+    
+    questionDiv.appendChild(buttonRow);
+    
+    // If last question, show continue button after submit
+    if (state.currentQuestion > phase.questions.length) {
+        const continueDiv = document.createElement('div');
+        continueDiv.className = 'text-center p-6';
+        const continueBtn = document.createElement('button');
+        continueBtn.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
+        continueBtn.textContent = 'Continue to Next Stimulus';
+        continueBtn.onclick = moveToNextStep;
+        continueDiv.appendChild(continueBtn);
+        questionsContainer.appendChild(continueDiv);
+        return;
+    }
+    
+    questionsContainer.appendChild(questionDiv);
+}
+
+function submitCurrentQuestion() {
+    const phase = experimentConfig.phases[state.currentPhase];
+    const question = phase.questions[state.currentQuestion - 1];
+    const element = document.getElementById(`question-${question.id}`);
+    if (!element) return;
+    if (question.type === 'text' && !element.value.trim()) {
+        alert('Please provide an answer before submitting.');
+        return;
+    }
+    // Save the current answer
+    const trialKey = `trial_${state.currentTrial}`;
+    const stimulusKey = `stimulus_${state.currentStimulus}`;
+    if (!state.answers[state.currentPhase]) {
+        state.answers[state.currentPhase] = {};
+    }
+    if (!state.answers[state.currentPhase][trialKey]) {
+        state.answers[state.currentPhase][trialKey] = {};
+    }
+    if (!state.answers[state.currentPhase][trialKey][stimulusKey]) {
+        state.answers[state.currentPhase][trialKey][stimulusKey] = {
+            stimulusId: getCurrentStimulus().id,
+            responses: {}
+        };
+    }
+    state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = 
+        question.type === 'slider' ? element.value : element.value.trim();
+    saveToLocalStorage();
+    // Move to next question or finish if all questions are answered
+    const nextQuestion = state.currentQuestion + 1;
+    if (nextQuestion <= phase.questions.length) {
+        showQuestion(nextQuestion);
+    } else {
+        // All questions answered, show completion message
+        const questionsContainer = document.getElementById('questions-container');
+        questionsContainer.innerHTML = '';
+        const continueDiv = document.createElement('div');
+        continueDiv.className = 'text-center p-6';
+        const continueBtn = document.createElement('button');
+        continueBtn.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
+        continueBtn.textContent = 'Continue to Next Stimulus';
+        continueBtn.onclick = moveToNextStep;
+        continueDiv.appendChild(continueBtn);
+        questionsContainer.appendChild(continueDiv);
+    }
+}
+
+function skipQuestion() {
+    // Save null/empty for this question and move to next
+    const phase = experimentConfig.phases[state.currentPhase];
+    const question = phase.questions[state.currentQuestion - 1];
+    const trialKey = state.currentPhase === 'flavor'
+        ? `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`
+        : `trial_${state.currentTrial}`;
+    const stimulusKey = `stimulus_${state.currentStimulus}`;
+    if (!state.answers[state.currentPhase]) state.answers[state.currentPhase] = {};
+    if (!state.answers[state.currentPhase][trialKey]) state.answers[state.currentPhase][trialKey] = {};
+    if (!state.answers[state.currentPhase][trialKey][stimulusKey]) {
+        state.answers[state.currentPhase][trialKey][stimulusKey] = {
+            stimulusId: getCurrentStimulus().id,
+            responses: {}
+        };
+    }
+    state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = null;
+    saveToLocalStorage();
+    // Move to next question
+    const nextQuestion = state.currentQuestion + 1;
+    const phaseQuestions = experimentConfig.phases[state.currentPhase].questions.length;
+    if (nextQuestion <= phaseQuestions) {
+        showQuestion(nextQuestion);
+    } else {
+        // All questions answered, show completion message
+        const questionsContainer = document.getElementById('questions-container');
+        questionsContainer.innerHTML = '';
+        const continueDiv = document.createElement('div');
+        continueDiv.className = 'text-center p-6';
+        const continueBtn = document.createElement('button');
+        continueBtn.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
+        continueBtn.textContent = 'Continue to Next Stimulus';
+        continueBtn.onclick = moveToNextStep;
+        continueDiv.appendChild(continueBtn);
+        questionsContainer.appendChild(continueDiv);
+    }
 }
 
 function validateSurveyAnswers() {
-    const sectionKey = `section_${state.currentSection}`;
-    const questions = questionsData.sections[sectionKey];
+    const phase = experimentConfig.phases[state.currentPhase];
     let allAnswered = true;
     
-    questions.forEach(question => {
-        if (question.type === 'slider') {
-            // Sliders are always answered because they have a default value
-        } else if (question.type === 'radio') {
-            const radios = document.getElementsByName(`question-${question.question_id}`);
-            let radioChecked = false;
-            
-            for (let i = 0; i < radios.length; i++) {
-                if (radios[i].checked) {
-                    radioChecked = true;
-                    break;
-                }
-            }
-            
-            if (!radioChecked) {
+    // Check all questions, not just the current one
+    phase.questions.forEach(question => {
+        const element = document.getElementById(`question-${question.id}`);
+        if (element) {
+            if (question.type === 'text' && !element.value.trim()) {
                 allAnswered = false;
             }
         }
@@ -300,32 +732,37 @@ function validateSurveyAnswers() {
 }
 
 function collectSurveyAnswers() {
-    const sectionKey = `section_${state.currentSection}`;
-    const questions = questionsData.sections[sectionKey];
-    const testKey = `test_${state.currentTest}`;
+    const phase = experimentConfig.phases[state.currentPhase];
+    const trialKey = `trial_${state.currentTrial}`;
+    const stimulusKey = `stimulus_${state.currentStimulus}`;
     
-    // Initialize test object if it doesn't exist
-    if (!state.answers[sectionKey][testKey]) {
-        state.answers[sectionKey][testKey] = {};
+    if (!state.answers[state.currentPhase]) {
+        state.answers[state.currentPhase] = {};
     }
     
-    questions.forEach(question => {
-        if (question.type === 'slider') {
-            const slider = document.getElementById(`question-${question.question_id}`);
-            state.answers[sectionKey][testKey][`question_${question.question_id}`] = slider.value;
-        } else if (question.type === 'radio') {
-            const radios = document.getElementsByName(`question-${question.question_id}`);
-            
-            for (let i = 0; i < radios.length; i++) {
-                if (radios[i].checked) {
-                    state.answers[sectionKey][testKey][`question_${question.question_id}`] = radios[i].value;
-                    break;
-                }
+    if (!state.answers[state.currentPhase][trialKey]) {
+        state.answers[state.currentPhase][trialKey] = {};
+    }
+    
+    if (!state.answers[state.currentPhase][trialKey][stimulusKey]) {
+        state.answers[state.currentPhase][trialKey][stimulusKey] = {
+            stimulusId: getCurrentStimulus().id,
+            responses: {}
+        };
+    }
+    
+    // Collect answers for all questions, even if they're not currently visible
+    phase.questions.forEach(question => {
+        const element = document.getElementById(`question-${question.id}`);
+        if (element) {
+            if (question.type === 'slider') {
+                state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = element.value;
+            } else if (question.type === 'text') {
+                state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = element.value.trim();
             }
         }
     });
     
-    // Save to localStorage
     saveToLocalStorage();
 }
 
@@ -334,13 +771,47 @@ function saveToLocalStorage() {
 }
 
 function downloadResults() {
-    const dataStr = JSON.stringify(state.answers, null, 2);
+    // Build a structured, meaningful JSON reflecting the workflow
+    const output = {
+        participant: state.participantNumber,
+        timestamp: new Date().toISOString(),
+        results: []
+    };
+    
+    for (const phaseKey of Object.keys(state.answers)) {
+        const phaseData = state.answers[phaseKey];
+        for (const trialKey of Object.keys(phaseData)) {
+            const trialData = phaseData[trialKey];
+            for (const stimulusKey of Object.keys(trialData)) {
+                const entry = trialData[stimulusKey];
+                // For flavor, add part/trial info
+                let part = undefined, flavorTrial = undefined;
+                if (phaseKey === 'flavor') {
+                    // Parse keys like trial_1_orthonasal_1
+                    const match = trialKey.match(/^trial_(\d+)_([a-z]+)_(\d+)$/);
+                    if (match) {
+                        flavorTrial = parseInt(match[1]);
+                        part = match[2];
+                    }
+                }
+                output.results.push({
+                    phase: phaseKey,
+                    trial: phaseKey === 'flavor' ? flavorTrial : parseInt(trialKey.replace('trial_', '')),
+                    part: part,
+                    stimulus: entry.stimulusId,
+                    responses: entry.responses
+                });
+            }
+        }
+    }
+    
+    const dataStr = JSON.stringify(output, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
-    downloadLink.download = 'flavourSync_results.json';
+    downloadLink.download = `flavourSync_results_participant_${state.participantNumber}.json`;
     
     document.body.appendChild(downloadLink);
     downloadLink.click();
@@ -352,71 +823,40 @@ async function activateTest() {
     state.testStarted = true;
     
     document.getElementById('activate-btn').disabled = true;
-    const countdownElement = document.getElementById('countdown');
-    countdownElement.classList.remove('hidden');
     
-    const sectionKey = `section_${state.currentSection}`;
-    const currentTest = experimentData.sections[sectionKey][state.currentTest - 1];
+    const stimulus = getCurrentStimulus();
+    const commands = getCurrentCommand();
     
-    // For flavor section (section 3)
-    if (state.currentSection === 3) {
-        const commands = currentTest.commands;
-        
-        for (let i = 0; i < commands.length; i++) {
-            const command = commands[i];
-            
-            if (command.delay > 0) {
-                setTimeout(() => {
-                    sendCommand(command.command_string);
-                }, command.delay);
-            } else {
-                sendCommand(command.command_string);
+    // Show system running message
+    const instructions = document.getElementById('test-instructions');
+    const originalText = instructions.textContent;
+    instructions.textContent = 'System is running... Please wait.';
+    instructions.classList.add('text-primary', 'font-medium');
+    
+    if (Array.isArray(commands)) {
+        // Handle flavor phase commands
+        for (const cmd of commands) {
+            if (cmd.delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, cmd.delay));
             }
+            await sendCommand(cmd.command);
         }
-        
-        // Calculate max time for countdown
-        const maxDelay = Math.max(...commands.map(cmd => cmd.delay));
-        const maxDuration = Math.max(...commands.map(cmd => {
-            const parts = cmd.command_string.split(' ');
-            return parseInt(parts[2]);
-        }));
-        
-        const totalTime = Math.ceil((maxDelay + maxDuration) / 1000);
-        
-        // Countdown
-        for (let i = totalTime; i > 0; i--) {
-            countdownElement.textContent = i;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    } else {
-        // For smell and taste sections
-        sendCommand(currentTest.command_string);
-        
-        // Extract timing from command
-        const parts = currentTest.command_string.split(' ');
-        const duration = parseInt(parts[2]);
-        const countdownTime = Math.ceil(duration / 1000);
-        
-        // Countdown
-        for (let i = countdownTime; i > 0; i--) {
-            countdownElement.textContent = i;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+    } else if (commands) {
+        // Handle smell and taste phase commands
+        await sendCommand(commands);
     }
     
-    countdownElement.classList.add('hidden');
-    document.getElementById('try-again-modal').classList.remove('hidden');
-}
-
-function tryAgain() {
-    document.getElementById('try-again-modal').classList.add('hidden');
+    // Wait for 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    // Restore original text
+    instructions.textContent = originalText;
+    instructions.classList.remove('text-primary', 'font-medium');
+    
+    state.testStarted = false;
     document.getElementById('activate-btn').disabled = false;
-    state.testStarted = false;
-}
-
-function moveToNextStep() {
-    document.getElementById('try-again-modal').classList.add('hidden');
-    state.testStarted = false;
+    
+    state.currentQuestion = 1; // Reset to first question for new survey
     showScreen('survey-screen');
     createSurveyQuestions();
 }
@@ -428,40 +868,144 @@ function handleSubmitSurvey() {
     }
     
     collectSurveyAnswers();
-    
-    const sectionKey = `section_${state.currentSection}`;
-    const testsInSection = experimentData.sections[sectionKey].length;
-    
-    if (state.currentTest < testsInSection) {
-        // Move to next test in current section
-        state.currentTest++;
-        showScreen('test-screen');
-        updateTestInstructions();
-        updateProgress();
-        document.getElementById('activate-btn').disabled = false;
-    } else if (state.currentSection < 3) {
-        // Move to next section
-        state.currentSection++;
-        state.currentTest = 1;
-        showScreen('test-screen');
-        updateTestInstructions();
-        updateProgress();
-        document.getElementById('activate-btn').disabled = false;
+    moveToNextStep();
+}
+
+function skipSurvey() {
+    collectSurveyAnswers();
+    moveToNextStep();
+}
+
+function moveToNextStep() {
+    const phase = experimentConfig.phases[state.currentPhase];
+    if (state.currentPhase === 'flavor') {
+        const totalStimuli = phase.stimuli.length;
+        const totalTrials = 2;
+        const parts = phase.parts;
+        // Move within part
+        if (state.currentStimulus < totalStimuli) {
+            state.currentStimulus++;
+            showScreen('test-screen');
+            updateTestInstructions();
+            updateExperimentStatus();
+        } else if (state.currentFlavorTrial < totalTrials) {
+            state.currentFlavorTrial++;
+            state.currentStimulus = 1;
+            showScreen('break-screen');
+        } else if (state.currentFlavorPart === 'orthonasal') {
+            state.currentFlavorPart = 'retronasal';
+            state.currentFlavorTrial = 1;
+            state.currentStimulus = 1;
+            showScreen('break-screen');
+        } else {
+            showScreen('completed-screen');
+        }
     } else {
-        // Experiment completed
-        showScreen('completed-screen');
+        const totalStimuli = phase.stimuli.length;
+        if (state.currentStimulus < totalStimuli) {
+            state.currentStimulus++;
+            showScreen('test-screen');
+            updateTestInstructions();
+            updateExperimentStatus();
+        } else if (state.currentTrial < 3) {
+            state.currentTrial++;
+            state.currentStimulus = 1;
+            showScreen('break-screen');
+        } else if (state.currentPhase === 'smell') {
+            state.currentPhase = 'taste';
+            state.currentTrial = 1;
+            state.currentStimulus = 1;
+            showScreen('break-screen');
+        } else if (state.currentPhase === 'taste') {
+            state.currentPhase = 'flavor';
+            // Reset flavor part/trial/stimulus
+            state.currentFlavorPart = 'orthonasal';
+            state.currentFlavorTrial = 1;
+            state.currentStimulus = 1;
+            showScreen('break-screen');
+        } else {
+            showScreen('completed-screen');
+        }
+    }
+}
+
+function continueAfterBreak() {
+    if (state.currentPhase === 'flavor') {
+        showScreen('test-screen');
+        updateTestInstructions();
+        updateExperimentStatus();
+    } else {
+        showScreen('test-screen');
+        updateTestInstructions();
+        updateExperimentStatus();
+    }
+}
+
+function startParticipant() {
+    const participantNumber = parseInt(document.getElementById('participant-number').value);
+    
+    if (isNaN(participantNumber) || participantNumber < 1 || participantNumber > 16) {
+        alert('Please enter a valid participant number (1-16)');
+        return;
+    }
+    
+    // Clear old data and reset answers for new participant
+    localStorage.removeItem('flavourSyncAnswers');
+    state.answers = {};
+    
+    state.participantNumber = participantNumber;
+    initializeTrialSequences();
+    showScreen('welcome-screen');
+    updateExperimentStatus();
+}
+
+function skipTrial() {
+    if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
+        if (state.currentPhase === 'flavor') {
+            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+            // Skip to end of current trial
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        } else {
+            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+            // Skip to end of current trial
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        }
+    }
+}
+
+function skipPhase() {
+    if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
+        if (state.currentPhase === 'flavor') {
+            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+            // If in orthonasal, skip to end of last trial in orthonasal
+            if (state.currentFlavorPart === 'orthonasal') {
+                state.currentFlavorTrial = 2;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            } else {
+                // If in retronasal, skip to end
+                state.currentFlavorTrial = 2;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        } else {
+            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+            state.currentTrial = 3;
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        }
     }
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if Web Serial API is supported
     if (!('serial' in navigator)) {
         alert('Web Serial API is not supported in your browser. Please use Chrome or Edge.');
         document.getElementById('connect-device-btn').disabled = true;
     }
     
-    // Load existing data from localStorage if available
     const savedData = localStorage.getItem('flavourSyncAnswers');
     if (savedData) {
         try {
@@ -471,16 +1015,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Setup event listeners
+    document.getElementById('start-participant-btn').addEventListener('click', startParticipant);
     document.getElementById('connect-device-btn').addEventListener('click', connectToDevice);
     document.getElementById('start-experiment-btn').addEventListener('click', function() {
         showScreen('test-screen');
         updateTestInstructions();
-        updateProgress();
+        updateExperimentStatus();
     });
     document.getElementById('activate-btn').addEventListener('click', activateTest);
-    document.getElementById('try-again-btn').addEventListener('click', tryAgain);
-    document.getElementById('next-btn').addEventListener('click', moveToNextStep);
     document.getElementById('submit-survey-btn').addEventListener('click', handleSubmitSurvey);
+    document.getElementById('skip-survey-btn').addEventListener('click', skipSurvey);
+    document.getElementById('continue-btn').addEventListener('click', continueAfterBreak);
     document.getElementById('download-results-btn').addEventListener('click', downloadResults);
 });
