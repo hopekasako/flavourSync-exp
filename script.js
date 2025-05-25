@@ -542,38 +542,107 @@ function showQuestion(questionNumber) {
     if (question.type === 'slider') {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'space-y-2';
-        
+
+        // Add custom styles for the slider
+        const style = document.createElement('style');
+        style.textContent = `
+            input[type="range"] {
+                -webkit-appearance: none;
+                width: 100%;
+                height: 4px;
+                background: #e5e7eb;
+                border-radius: 2px;
+                outline: none;
+                transition: background 0.2s ease;
+            }
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 16px;
+                height: 16px;
+                background: #4f46e5;
+                border-radius: 2px;
+                cursor: pointer;
+                transition: transform 0.1s ease;
+            }
+            input[type="range"]::-webkit-slider-thumb:hover {
+                transform: scale(1.1);
+            }
+            input[type="range"]::-moz-range-thumb {
+                width: 16px;
+                height: 16px;
+                background: #4f46e5;
+                border-radius: 2px;
+                cursor: pointer;
+                border: none;
+                transition: transform 0.1s ease;
+            }
+            input[type="range"]::-moz-range-thumb:hover {
+                transform: scale(1.1);
+            }
+            input[type="range"]:focus {
+                background: #d1d5db;
+            }
+        `;
+        document.head.appendChild(style);
+
         const slider = document.createElement('input');
         slider.type = 'range';
         slider.min = question.min;
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
-        slider.className = 'w-full accent-primary';
+        slider.className = 'w-full';
         slider.id = `question-${question.id}`;
-        
+
         const labelsContainer = document.createElement('div');
         labelsContainer.className = 'flex justify-between text-sm text-gray-500';
-        
-        const minLabel = document.createElement('span');
-        minLabel.textContent = question.labels[0];
-        
-        const maxLabel = document.createElement('span');
-        maxLabel.textContent = question.labels[1];
-        
-        labelsContainer.appendChild(minLabel);
-        labelsContainer.appendChild(maxLabel);
-        
-        const valueDisplay = document.createElement('div');
-        valueDisplay.className = 'text-center font-medium text-primary';
-        valueDisplay.textContent = slider.value;
-        
-        slider.addEventListener('input', () => {
-            valueDisplay.textContent = slider.value;
-        });
-        
+
+        // Custom labels for intensity-related questions
+        if (question.id !== 'liking') {
+            const intensityLabels = [
+                { text: 'Barely detectable', value: 1.380 },
+                { text: 'Weak', value: 5.754 },
+                { text: 'Moderate', value: 16.218 },
+                { text: 'Strong', value: 33.113 },
+                { text: 'Very Strong', value: 50.119 },
+                { text: 'Strongest Imaginable', value: 95.499 }
+            ];
+
+            // Create label elements with specific positions
+            intensityLabels.forEach(label => {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'flex flex-col items-center';
+                
+                const labelText = document.createElement('span');
+                labelText.textContent = label.text;
+                labelText.className = 'text-xs text-center';
+                
+                labelDiv.appendChild(labelText);
+                labelsContainer.appendChild(labelDiv);
+            });
+
+            // Update slider value to match the closest label value
+            slider.addEventListener('input', () => {
+                const value = parseFloat(slider.value);
+                const closestLabel = intensityLabels.reduce((prev, curr) => {
+                    return Math.abs(curr.value - value) < Math.abs(prev.value - value) ? curr : prev;
+                });
+                // Store the value but don't display it
+                slider.dataset.value = closestLabel.value.toFixed(3);
+            });
+        } else {
+            // Original liking labels
+            const minLabel = document.createElement('span');
+            minLabel.textContent = question.labels[0];
+            
+            const maxLabel = document.createElement('span');
+            maxLabel.textContent = question.labels[1];
+            
+            labelsContainer.appendChild(minLabel);
+            labelsContainer.appendChild(maxLabel);
+        }
+
         sliderContainer.appendChild(slider);
         sliderContainer.appendChild(labelsContainer);
-        sliderContainer.appendChild(valueDisplay);
         questionDiv.appendChild(sliderContainer);
     } else if (question.type === 'text') {
         const textInput = document.createElement('textarea');
@@ -1003,7 +1072,8 @@ function skipPhase() {
 document.addEventListener('DOMContentLoaded', function() {
     if (!('serial' in navigator)) {
         alert('Web Serial API is not supported in your browser. Please use Chrome or Edge.');
-        document.getElementById('connect-device-btn').disabled = true;
+        const connectBtn = document.getElementById('connect-device-btn');
+        if (connectBtn) connectBtn.disabled = true;
     }
     
     const savedData = localStorage.getItem('flavourSyncAnswers');
@@ -1015,16 +1085,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    document.getElementById('start-participant-btn').addEventListener('click', startParticipant);
-    document.getElementById('connect-device-btn').addEventListener('click', connectToDevice);
-    document.getElementById('start-experiment-btn').addEventListener('click', function() {
+    // Helper function to safely add event listeners
+    function addEventListenerIfExists(elementId, event, handler) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener(event, handler);
+        }
+    }
+    
+    addEventListenerIfExists('start-participant-btn', 'click', startParticipant);
+    addEventListenerIfExists('connect-device-btn', 'click', connectToDevice);
+    addEventListenerIfExists('start-experiment-btn', 'click', function() {
         showScreen('test-screen');
         updateTestInstructions();
         updateExperimentStatus();
     });
-    document.getElementById('activate-btn').addEventListener('click', activateTest);
-    document.getElementById('submit-survey-btn').addEventListener('click', handleSubmitSurvey);
-    document.getElementById('skip-survey-btn').addEventListener('click', skipSurvey);
-    document.getElementById('continue-btn').addEventListener('click', continueAfterBreak);
-    document.getElementById('download-results-btn').addEventListener('click', downloadResults);
+    addEventListenerIfExists('activate-btn', 'click', activateTest);
+    addEventListenerIfExists('submit-survey-btn', 'click', handleSubmitSurvey);
+    addEventListenerIfExists('skip-survey-btn', 'click', skipSurvey);
+    addEventListenerIfExists('continue-btn', 'click', continueAfterBreak);
+    addEventListenerIfExists('download-results-btn', 'click', downloadResults);
 });
