@@ -560,41 +560,45 @@ function showScreen(screenId) {
 
 function updateExperimentStatus() {
     const phase = experimentConfig.phases[state.currentPhase];
-    let totalTrials = 3;  // default
+    let totalTrials = 3;  // default for smell & taste
 
+    // Flavor phase only has 2 trials per part
     if (state.currentPhase === 'flavor') {
-        totalTrials = 2; // since flavor only has 2 trials per part (orthonasal, retronasal)
+        totalTrials = 2;
     }
 
     const totalStimuli = phase.stimuli.length;
 
-    // Update welcome screen
-    document.getElementById('current-phase').textContent = phase.name;
-
-    // Adjust the trial number based on flavor part/trial or normal trial
+    // Set phase display name with extra info for flavor parts
+    let phaseDisplayName = phase.name;
     if (state.currentPhase === 'flavor') {
-        document.getElementById('current-trial').textContent = `Trial ${state.currentFlavorTrial} of ${totalTrials}`;
-    } else {
-        document.getElementById('current-trial').textContent = `Trial ${state.currentTrial} of ${totalTrials}`;
+        // Capitalize flavor part for better display
+        const partName = state.currentFlavorPart.charAt(0).toUpperCase() + state.currentFlavorPart.slice(1);
+        phaseDisplayName += ` - ${partName}`;
     }
 
+    // Update welcome screen
+    document.getElementById('current-phase').textContent = phaseDisplayName;
+
+    // Trial info — flavor phase uses currentFlavorTrial, others use currentTrial
+    const currentTrialNumber = (state.currentPhase === 'flavor') ? state.currentFlavorTrial : state.currentTrial;
+
+    // Make trial text super clear & friendly
+    document.getElementById('current-trial').textContent = `Trial ${currentTrialNumber} of ${totalTrials}`;
+
+    // Stimulus info
     document.getElementById('current-stimulus').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
 
-    // Update test screen
-    document.getElementById('section-title').textContent = `${phase.name}`;
-    document.getElementById('phase-indicator').textContent = phase.name;
+    // Update test screen with same clear info
+    document.getElementById('section-title').textContent = phaseDisplayName;
+    document.getElementById('phase-indicator').textContent = phaseDisplayName;
+    document.getElementById('trial-indicator').textContent = `Trial ${currentTrialNumber} of ${totalTrials}`;
+    document.getElementById('stimulus-indicator').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
 
-    if (state.currentPhase === 'flavor') {
-        document.getElementById('trial-indicator').textContent = `${state.currentFlavorTrial} of ${totalTrials}`;
-    } else {
-        document.getElementById('trial-indicator').textContent = `${state.currentTrial} of ${totalTrials}`;
-    }
-
-    document.getElementById('stimulus-indicator').textContent = `${state.currentStimulus} of ${totalStimuli}`;
-
-    // Update participant status
+    // Participant info stays the same
     document.getElementById('participant-status').textContent = `Participant: ${state.participantNumber}`;
 }
+
 
 
 function updateTestInstructions() {
@@ -618,9 +622,9 @@ function updateTestInstructions() {
     if (state.currentPhase === 'smell') {
         instructions = `Please position your nose near the device. Click the button when ready to experience the smell.`;
     } else if (state.currentPhase === 'taste') {
-        instructions = `Please position your mouth in the mouthpiece. Click the button when ready to experience the taste.`;
+        instructions = `Please place the mouthpiece in your mouth. Click the button when ready to experience the taste.`;
     } else if (state.currentPhase === 'flavor') {
-        instructions = `Please position your nose near the device and mouth in the mouthpiece. Click the button when ready to experience the flavor.`;
+        instructions = `Please position your nose near the device and place the mouthpiece in your mouth. Click the button when ready to experience the flavor.`;
     }
     
     document.getElementById('test-instructions').textContent = instructions;
