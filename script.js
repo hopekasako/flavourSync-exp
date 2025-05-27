@@ -257,20 +257,22 @@ const experimentData = {
             { experiment_id: 4, command_string: "4 1 5000 200" },
             { experiment_id: 5, command_string: "5 1 5000 200" }
         ],
-        section_3: [ // Flavor Phase
-            { experiment_id: 1, part: "orthonasal", commands: [
+        section_3_orthonasal: [ // Flavor Phase - Orthonasal
+            { experiment_id: 1, commands: [
                 { command_string: "1 1 6000", delay: 0 },
                 { command_string: "1 1 3000 200", delay: 3000 }
             ]},
-            { experiment_id: 2, part: "orthonasal", commands: [
+            { experiment_id: 2, commands: [
                 { command_string: "3 1 6000", delay: 0 },
                 { command_string: "3 1 3000 200", delay: 3000 }
-            ]},
-            { experiment_id: 3, part: "retronasal", commands: [
+            ]}
+        ],
+        section_3_retronasal: [ // Flavor Phase - Retronasal
+            { experiment_id: 3, commands: [
                 { command_string: "2 1 6000", delay: 0 },
                 { command_string: "2 1 6000 200", delay: 0 }
             ]},
-            { experiment_id: 4, part: "retronasal", commands: [
+            { experiment_id: 4, commands: [
                 { command_string: "4 1 6000", delay: 0 },
                 { command_string: "4 1 6000 200", delay: 0 }
             ]}
@@ -296,7 +298,118 @@ const participantSequences = {
             retronasal: [[2,1], [1,2]]
         }
     },
-    // Add sequences for participants 3-16 here
+    3: {
+        smell: [[3,4,5,1,2], [4,5,1,2,3], [1,2,3,4,5]],
+        taste: [[3,4,5,1,2], [4,5,1,2,3], [1,2,3,4,5]],
+        flavor: {
+            orthonasal: [[1,2], [2,1]],
+            retronasal: [[2,1], [1,2]]
+        }
+    },
+    4: {
+        smell: [[4,5,1,2,3], [5,1,2,3,4], [2,3,4,5,1]],
+        taste: [[4,5,1,2,3], [5,1,2,3,4], [2,3,4,5,1]],
+        flavor: {
+            orthonasal: [[2,1], [1,2]],
+            retronasal: [[1,2], [2,1]]
+        }
+    },
+    5: {
+        smell: [[5,1,2,3,4], [1,2,3,4,5], [3,4,5,1,2]],
+        taste: [[5,1,2,3,4], [1,2,3,4,5], [3,4,5,1,2]],
+        flavor: {
+            orthonasal: [[1,2], [2,1]],
+            retronasal: [[1,2], [2,1]]
+        }
+    },
+    6: {
+        smell: [[1,3,5,2,4], [2,4,1,3,5], [3,5,2,4,1]],
+        taste: [[1,3,5,2,4], [2,4,1,3,5], [3,5,2,4,1]],
+        flavor: {
+            orthonasal: [[2,1], [2,1]],
+            retronasal: [[1,2], [1,2]]
+        }
+    },
+    7: {
+        smell: [[2,4,1,3,5], [3,5,2,4,1], [4,1,3,5,2]],
+        taste: [[2,4,1,3,5], [3,5,2,4,1], [4,1,3,5,2]],
+        flavor: {
+            orthonasal: [[1,2], [1,2]],
+            retronasal: [[2,1], [2,1]]
+        }
+    },
+    8: {
+        smell: [[3,5,2,4,1], [4,1,3,5,2], [5,2,4,1,3]],
+        taste: [[3,5,2,4,1], [4,1,3,5,2], [5,2,4,1,3]],
+        flavor: {
+            orthonasal: [[2,1], [1,2]],
+            retronasal: [[2,1], [1,2]]
+        }
+    },
+    9: {
+        smell: [[4,1,3,5,2], [5,2,4,1,3], [1,3,5,2,4]],
+        taste: [[4,1,3,5,2], [5,2,4,1,3], [1,3,5,2,4]],
+        flavor: {
+            orthonasal: [[1,2], [2,1]],
+            retronasal: [[1,2], [2,1]]
+        }
+    },
+    10: {
+        smell: [[5,2,4,1,3], [1,3,5,2,4], [2,4,1,3,5]],
+        taste: [[5,2,4,1,3], [1,3,5,2,4], [2,4,1,3,5]],
+        flavor: {
+            orthonasal: [[2,1], [2,1]],
+            retronasal: [[2,1], [2,1]]
+        }
+    },
+    11: {
+        smell: [[1,4,2,5,3], [2,5,3,1,4], [3,1,4,2,5]],
+        taste: [[1,4,2,5,3], [2,5,3,1,4], [3,1,4,2,5]],
+        flavor: {
+            orthonasal: [[1,2], [1,2]],
+            retronasal: [[1,2], [1,2]]
+        }
+    },
+    12: {
+        smell: [[2,5,3,1,4], [3,1,4,2,5], [4,2,5,3,1]],
+        taste: [[2,5,3,1,4], [3,1,4,2,5], [4,2,5,3,1]],
+        flavor: {
+            orthonasal: [[2,1], [2,1]],
+            retronasal: [[2,1], [2,1]]
+        }
+    },
+    13: {
+        smell: [[3,1,4,2,5], [4,2,5,3,1], [5,3,1,4,2]],
+        taste: [[3,1,4,2,5], [4,2,5,3,1], [5,3,1,4,2]],
+        flavor: {
+            orthonasal: [[1,2], [2,1]],
+            retronasal: [[2,1], [1,2]]
+        }
+    },
+    14: {
+        smell: [[4,2,5,3,1], [5,3,1,4,2], [1,4,2,5,3]],
+        taste: [[4,2,5,3,1], [5,3,1,4,2], [1,4,2,5,3]],
+        flavor: {
+            orthonasal: [[2,1], [1,2]],
+            retronasal: [[1,2], [2,1]]
+        }
+    },
+    15: {
+        smell: [[5,3,1,4,2], [1,4,2,5,3], [2,5,3,1,4]],
+        taste: [[5,3,1,4,2], [1,4,2,5,3], [2,5,3,1,4]],
+        flavor: {
+            orthonasal: [[1,2], [1,2]],
+            retronasal: [[1,2], [1,2]]
+        }
+    },
+    16: {
+        smell: [[1,5,4,3,2], [2,1,5,4,3], [3,2,1,5,4]],
+        taste: [[1,5,4,3,2], [2,1,5,4,3], [3,2,1,5,4]],
+        flavor: {
+            orthonasal: [[2,1], [2,1]],
+            retronasal: [[2,1], [2,1]]
+        }
+    }
 };
 
 // App state
@@ -327,7 +440,11 @@ function shuffleArray(array) {
 
 // Get sequence for current participant
 function getParticipantSequence() {
-    return participantSequences[state.participantNumber] || participantSequences[1]; // Default to sequence 1 if not found
+    if (!state.participantNumber || !participantSequences[state.participantNumber]) {
+        console.error('Invalid participant number or sequence not found');
+        return participantSequences[1]; // Default to sequence 1 if not found
+    }
+    return participantSequences[state.participantNumber];
 }
 
 // Initialize trial sequences for the participant
@@ -367,20 +484,12 @@ function getCurrentCommand() {
         return experimentData.sections.section_2.find(s => s.experiment_id === stimulus.id)?.command_string;
     } else if (phase === 'flavor') {
         const part = state.currentFlavorPart;
-        let flavorStimulus;
         if (part === 'orthonasal') {
-            // Orthonasal: experiment_id 1 or 2
-            flavorStimulus = experimentData.sections.section_3.find(s => s.part === 'orthonasal' && s.experiment_id === stimulus.id);
+            return experimentData.sections.section_3_orthonasal.find(s => s.experiment_id === stimulus.id)?.commands;
         } else {
-            // Retronasal: map stimulus.id 1->3, 2->4
+            // For retronasal, map stimulus.id 1->3, 2->4
             let retroId = stimulus.id === 1 ? 3 : 4;
-            flavorStimulus = experimentData.sections.section_3.find(s => s.part === 'retronasal' && s.experiment_id === retroId);
-        }
-        if (flavorStimulus) {
-            return flavorStimulus.commands.map(cmd => ({
-                command: cmd.command_string,
-                delay: cmd.delay
-            }));
+            return experimentData.sections.section_3_retronasal.find(s => s.experiment_id === retroId)?.commands;
         }
     }
     return null;
@@ -709,7 +818,12 @@ function submitCurrentQuestion() {
         return;
     }
     // Save the current answer
-    const trialKey = `trial_${state.currentTrial}`;
+    let trialKey;
+    if (state.currentPhase === 'flavor') {
+        trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
+    } else {
+        trialKey = `trial_${state.currentTrial}`;
+    }
     const stimulusKey = `stimulus_${state.currentStimulus}`;
     if (!state.answers[state.currentPhase]) {
         state.answers[state.currentPhase] = {};
@@ -749,9 +863,12 @@ function skipQuestion() {
     // Save null/empty for this question and move to next
     const phase = experimentConfig.phases[state.currentPhase];
     const question = phase.questions[state.currentQuestion - 1];
-    const trialKey = state.currentPhase === 'flavor'
-        ? `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`
-        : `trial_${state.currentTrial}`;
+    let trialKey;
+    if (state.currentPhase === 'flavor') {
+        trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
+    } else {
+        trialKey = `trial_${state.currentTrial}`;
+    }
     const stimulusKey = `stimulus_${state.currentStimulus}`;
     if (!state.answers[state.currentPhase]) state.answers[state.currentPhase] = {};
     if (!state.answers[state.currentPhase][trialKey]) state.answers[state.currentPhase][trialKey] = {};
@@ -844,32 +961,62 @@ function downloadResults() {
     const output = {
         participant: state.participantNumber,
         timestamp: new Date().toISOString(),
-        results: []
+        results: {
+            smell: [],
+            taste: [],
+            flavor: {
+                orthonasal: [],
+                retronasal: []
+            }
+        }
     };
     
-    for (const phaseKey of Object.keys(state.answers)) {
-        const phaseData = state.answers[phaseKey];
-        for (const trialKey of Object.keys(phaseData)) {
-            const trialData = phaseData[trialKey];
-            for (const stimulusKey of Object.keys(trialData)) {
-                const entry = trialData[stimulusKey];
-                // For flavor, add part/trial info
-                let part = undefined, flavorTrial = undefined;
-                if (phaseKey === 'flavor') {
-                    // Parse keys like trial_1_orthonasal_1
-                    const match = trialKey.match(/^trial_(\d+)_([a-z]+)_(\d+)$/);
-                    if (match) {
-                        flavorTrial = parseInt(match[1]);
-                        part = match[2];
-                    }
+    // Process smell and taste phases
+    ['smell', 'taste'].forEach(phase => {
+        if (state.answers[phase]) {
+            for (const trialKey of Object.keys(state.answers[phase])) {
+                const trialData = state.answers[phase][trialKey];
+                for (const stimulusKey of Object.keys(trialData)) {
+                    const entry = trialData[stimulusKey];
+                    output.results[phase].push({
+                        trial: parseInt(trialKey.replace('trial_', '')),
+                        stimulus: entry.stimulusId,
+                        responses: entry.responses
+                    });
                 }
-                output.results.push({
-                    phase: phaseKey,
-                    trial: phaseKey === 'flavor' ? flavorTrial : parseInt(trialKey.replace('trial_', '')),
-                    part: part,
-                    stimulus: entry.stimulusId,
-                    responses: entry.responses
-                });
+            }
+        }
+    });
+    
+    // Process flavor phase
+    if (state.answers.flavor) {
+        // Process orthonasal
+        for (const trialKey of Object.keys(state.answers.flavor)) {
+            if (trialKey.includes('orthonasal')) {
+                const trialData = state.answers.flavor[trialKey];
+                for (const stimulusKey of Object.keys(trialData)) {
+                    const entry = trialData[stimulusKey];
+                    output.results.flavor.orthonasal.push({
+                        trial: parseInt(trialKey.match(/trial_(\d+)_orthonasal/)[1]),
+                        stimulus: entry.stimulusId,
+                        responses: entry.responses
+                    });
+                }
+            }
+        }
+        
+        // Process retronasal
+        for (const trialKey of Object.keys(state.answers.flavor)) {
+            if (trialKey.includes('retronasal')) {
+                const trialData = state.answers.flavor[trialKey];
+                for (const stimulusKey of Object.keys(trialData)) {
+                    const entry = trialData[stimulusKey];
+                    output.results.flavor.retronasal.push({
+                        trial: parseInt(trialKey.match(/trial_(\d+)_retronasal/)[1]),
+                        stimulus: entry.stimulusId,
+                        responses: entry.responses
+                    });
+                }
             }
         }
     }
@@ -908,7 +1055,7 @@ async function activateTest() {
             if (cmd.delay > 0) {
                 await new Promise(resolve => setTimeout(resolve, cmd.delay));
             }
-            await sendCommand(cmd.command);
+            await sendCommand(cmd.command_string);
         }
     } else if (commands) {
         // Handle smell and taste phase commands
