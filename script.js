@@ -655,42 +655,62 @@ function showQuestion(questionNumber) {
         // Add custom styles for the slider
         const style = document.createElement('style');
         style.textContent = `
-            input[type="range"] {
-                -webkit-appearance: none;
-                width: 100%;
-                height: 4px;
-                background: #e5e7eb;
-                border-radius: 2px;
-                outline: none;
-                transition: background 0.2s ease;
-            }
-            input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                width: 16px;
-                height: 16px;
-                background: #4f46e5;
-                border-radius: 2px;
-                cursor: pointer;
-                transition: transform 0.1s ease;
-            }
-            input[type="range"]::-webkit-slider-thumb:hover {
-                transform: scale(1.1);
-            }
-            input[type="range"]::-moz-range-thumb {
-                width: 16px;
-                height: 16px;
-                background: #4f46e5;
-                border-radius: 2px;
-                cursor: pointer;
-                border: none;
-                transition: transform 0.1s ease;
-            }
-            input[type="range"]::-moz-range-thumb:hover {
-                transform: scale(1.1);
-            }
-            input[type="range"]:focus {
-                background: #d1d5db;
-            }
+            /* Base slider styling */
+input[type="range"] {
+    -webkit-appearance: none;  /* Remove default Chrome/Edge style */
+    -moz-appearance: none;     /* Remove default Firefox style */
+    appearance: none;
+    width: 100%;
+    height: 4px;               /* Slim track */
+    background: #e5e7eb;
+    border-radius: 2px;
+    outline: none;
+}
+
+/* Webkit (Chrome, Edge, Safari) thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 8px;
+    height: 24px;
+    background: #4f46e5;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: px; /* Align thumb vertically */
+    transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Firefox thumb */
+input[type="range"]::-moz-range-thumb {
+    width: 8px;
+    height: 24px;
+    background: #4f46e5;
+    border-radius: 2px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Firefox track */
+input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+}
+
+/* Focus style */
+input[type="range"]:focus {
+    background: #d1d5db;
+}
+
         `;
         document.head.appendChild(style);
 
