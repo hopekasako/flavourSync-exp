@@ -504,10 +504,17 @@ async function connectToDevice() {
         state.writer = state.port.writable.getWriter();
         state.reader = state.port.readable.getReader();
         
-        document.getElementById('connection-status').textContent = 'Connected';
-        document.getElementById('connection-status').classList.remove('bg-red-100', 'text-red-600');
-        document.getElementById('connection-status').classList.add('bg-green-100', 'text-green-600');
-        document.getElementById('start-experiment-btn').disabled = false;
+        const connStatus = document.getElementById('connection-status');
+        const startBtn = document.getElementById('start-experiment-btn');
+        
+        connStatus.textContent = 'Connected';
+        connStatus.classList.remove('bg-red-100', 'text-red-600');
+        connStatus.classList.add('bg-green-100', 'text-green-600');
+        
+        // Enable Start Experiment button properly
+        startBtn.disabled = false;
+        startBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        startBtn.classList.add('bg-primary', 'hover:bg-indigo-700', 'cursor-pointer');
         
         readFromSerial();
         
@@ -516,6 +523,7 @@ async function connectToDevice() {
         alert('Failed to connect to device. Please try again.');
     }
 }
+
 
 async function readFromSerial() {
     try {
