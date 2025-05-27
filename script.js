@@ -560,23 +560,42 @@ function showScreen(screenId) {
 
 function updateExperimentStatus() {
     const phase = experimentConfig.phases[state.currentPhase];
-    const totalTrials = 3;
+    let totalTrials = 3;  // default
+
+    if (state.currentPhase === 'flavor') {
+        totalTrials = 2; // since flavor only has 2 trials per part (orthonasal, retronasal)
+    }
+
     const totalStimuli = phase.stimuli.length;
-    
+
     // Update welcome screen
     document.getElementById('current-phase').textContent = phase.name;
-    document.getElementById('current-trial').textContent = `Trial ${state.currentTrial} of ${totalTrials}`;
+
+    // Adjust the trial number based on flavor part/trial or normal trial
+    if (state.currentPhase === 'flavor') {
+        document.getElementById('current-trial').textContent = `Trial ${state.currentFlavorTrial} of ${totalTrials}`;
+    } else {
+        document.getElementById('current-trial').textContent = `Trial ${state.currentTrial} of ${totalTrials}`;
+    }
+
     document.getElementById('current-stimulus').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
-    
+
     // Update test screen
     document.getElementById('section-title').textContent = `${phase.name}`;
     document.getElementById('phase-indicator').textContent = phase.name;
-    document.getElementById('trial-indicator').textContent = `${state.currentTrial} of ${totalTrials}`;
+
+    if (state.currentPhase === 'flavor') {
+        document.getElementById('trial-indicator').textContent = `${state.currentFlavorTrial} of ${totalTrials}`;
+    } else {
+        document.getElementById('trial-indicator').textContent = `${state.currentTrial} of ${totalTrials}`;
+    }
+
     document.getElementById('stimulus-indicator').textContent = `${state.currentStimulus} of ${totalStimuli}`;
-    
+
     // Update participant status
     document.getElementById('participant-status').textContent = `Participant: ${state.participantNumber}`;
 }
+
 
 function updateTestInstructions() {
     const phase = experimentConfig.phases[state.currentPhase];
