@@ -60,14 +60,6 @@
             <h3 class="font-medium text-gray-700">Current Phase:</h3>
             <p id="current-phase" class="text-lg">Smell Phase</p>
           </div>
-          <div>
-            <h3 class="font-medium text-gray-700">Current Trial:</h3>
-            <p id="current-trial" class="text-lg">Trial 1 of 3</p>
-          </div>
-          <div>
-            <h3 class="font-medium text-gray-700">Current Stimulus:</h3>
-            <p id="current-stimulus" class="text-lg">Stimulus 1 of 5</p>
-          </div>
         </div>
       </div>
 
@@ -84,29 +76,14 @@
     <!-- Test Screen -->
     <div id="test-screen" class="hidden bg-white p-8 rounded-lg shadow-lg space-y-6">
       <div class="text-center">
-        <h2 id="section-title" class="text-2xl font-semibold text-primary mb-2">Smell Phase - Manual Condition</h2>
-        <p id="test-instructions" class="text-gray-600">Please follow the instructions below to experience the stimulus.</p>
-      </div>
-
-      <div class="bg-gray-50 p-6 rounded-lg">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-700">Phase:</span>
-            <span id="phase-indicator" class="font-medium">Smell</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-700">Trial:</span>
-            <span id="trial-indicator" class="font-medium">1 of 3</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-700">Stimulus:</span>
-            <span id="stimulus-indicator" class="font-medium">1 of 5</span>
-          </div>
+        <h2 id="section-title" class="text-2xl font-semibold text-primary mb-4">Smell Phase - Manual Condition</h2>
+        <div class="bg-primary/10 p-8 rounded-lg mb-8">
+          <p id="test-instructions" class="text-2xl font-medium text-gray-800 leading-relaxed">Please follow the instructions below to experience the stimulus.</p>
         </div>
       </div>
 
       <div class="flex justify-center">
-        <button id="activate-btn" class="px-6 py-3 bg-secondary text-white rounded-lg hover:bg-pink-600 transition-colors">
+        <button id="activate-btn" class="px-8 py-4 bg-secondary text-white rounded-lg hover:bg-pink-600 transition-colors text-lg font-semibold">
           Experience Stimulus
         </button>
       </div>

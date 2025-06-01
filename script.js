@@ -568,46 +568,17 @@ function showScreen(screenId) {
 
 function updateExperimentStatus() {
     const phase = experimentConfig.phases[state.currentPhase];
-    let totalTrials = 3;  // default for smell & taste
-
-    // Flavor phase only has 2 trials per part
-    if (state.currentPhase === 'flavor') {
-        totalTrials = 2;
-    }
-
-    const totalStimuli = phase.stimuli.length;
-
-    // Set phase display name with extra info for flavor parts
     let phaseDisplayName = phase.name;
-    if (state.currentPhase === 'flavor') {
-        // Capitalize flavor part for better display
-        const partName = state.currentFlavorPart.charAt(0).toUpperCase() + state.currentFlavorPart.slice(1);
-        phaseDisplayName += ` - ${partName}`;
-    }
 
     // Update welcome screen
     document.getElementById('current-phase').textContent = phaseDisplayName;
 
-    // Trial info — flavor phase uses currentFlavorTrial, others use currentTrial
-    const currentTrialNumber = (state.currentPhase === 'flavor') ? state.currentFlavorTrial : state.currentTrial;
-
-    // Make trial text super clear & friendly
-    document.getElementById('current-trial').textContent = `Trial ${currentTrialNumber} of ${totalTrials}`;
-
-    // Stimulus info
-    document.getElementById('current-stimulus').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
-
-    // Update test screen with same clear info
+    // Update test screen
     document.getElementById('section-title').textContent = phaseDisplayName;
-    document.getElementById('phase-indicator').textContent = phaseDisplayName;
-    document.getElementById('trial-indicator').textContent = `Trial ${currentTrialNumber} of ${totalTrials}`;
-    document.getElementById('stimulus-indicator').textContent = `Stimulus ${state.currentStimulus} of ${totalStimuli}`;
 
     // Participant info stays the same
     document.getElementById('participant-status').textContent = `Participant: ${state.participantNumber}`;
 }
-
-
 
 function updateTestInstructions() {
     const phase = experimentConfig.phases[state.currentPhase];
