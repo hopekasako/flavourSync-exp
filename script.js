@@ -650,138 +650,339 @@ function showQuestion(questionNumber) {
     questionText.textContent = question.question;
     questionDiv.appendChild(questionText);
     
-    if (question.type === 'slider') {
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'space-y-2';
+    const sliderContainer = document.createElement('div');
+    sliderContainer.className = 'space-y-2';
 
-        // Add custom styles for the slider
-        const style = document.createElement('style');
-        style.textContent = `
-            /* Base slider styling */
-input[type="range"] {
-    -webkit-appearance: none;  /* Remove default Chrome/Edge style */
-    -moz-appearance: none;     /* Remove default Firefox style */
-    appearance: none;
-    width: 100%;
-    height: 4px;               /* Slim track */
-    background: #e5e7eb;
-    border-radius: 2px;
-    outline: none;
-}
-
-/* Webkit (Chrome, Edge, Safari) thumb */
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 8px;
-    height: 24px;
-    background: #4f46e5;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-top: px; /* Align thumb vertically */
-    transition: transform 0.1s ease;
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-}
-
-/* Firefox thumb */
-input[type="range"]::-moz-range-thumb {
-    width: 8px;
-    height: 24px;
-    background: #4f46e5;
-    border-radius: 2px;
-    cursor: pointer;
-    border: none;
-    transition: transform 0.1s ease;
-}
-
-input[type="range"]::-moz-range-thumb:hover {
-    transform: scale(1.1);
-}
-
-/* Firefox track */
-input[type="range"]::-moz-range-track {
-    height: 4px;
-    background: #e5e7eb;
-    border-radius: 2px;
-}
-
-/* Focus style */
-input[type="range"]:focus {
-    background: #d1d5db;
-}
-
-        `;
-        document.head.appendChild(style);
-
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = question.min;
-        slider.max = question.max;
-        slider.value = (question.min + question.max) / 2;
-        slider.className = 'w-full';
-        slider.id = `question-${question.id}`;
-
-        const labelsContainer = document.createElement('div');
-        labelsContainer.className = 'flex justify-between text-sm text-gray-500';
-
-        // Custom labels for intensity-related questions
-        if (question.id !== 'liking') {
-            const intensityLabels = [
-                { text: 'Barely detectable', value: 1.380 },
-                { text: 'Weak', value: 5.754 },
-                { text: 'Moderate', value: 16.218 },
-                { text: 'Strong', value: 33.113 },
-                { text: 'Very Strong', value: 50.119 },
-                { text: 'Strongest Imaginable', value: 95.499 }
-            ];
-
-            // Create label elements with specific positions
-            intensityLabels.forEach(label => {
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'flex flex-col items-center';
-                
-                const labelText = document.createElement('span');
-                labelText.textContent = label.text;
-                labelText.className = 'text-xs text-center';
-                
-                labelDiv.appendChild(labelText);
-                labelsContainer.appendChild(labelDiv);
-            });
-
-            // Update slider value to match the closest label value
-            slider.addEventListener('input', () => {
-                const value = parseFloat(slider.value);
-                const closestLabel = intensityLabels.reduce((prev, curr) => {
-                    return Math.abs(curr.value - value) < Math.abs(prev.value - value) ? curr : prev;
-                });
-                // Store the value but don't display it
-                slider.dataset.value = closestLabel.value.toFixed(3);
-            });
-        } else {
-            // Original liking labels
-            const minLabel = document.createElement('span');
-            minLabel.textContent = question.labels[0];
-            
-            const maxLabel = document.createElement('span');
-            maxLabel.textContent = question.labels[1];
-            
-            labelsContainer.appendChild(minLabel);
-            labelsContainer.appendChild(maxLabel);
-        }
-
-        sliderContainer.appendChild(slider);
-        sliderContainer.appendChild(labelsContainer);
-        questionDiv.appendChild(sliderContainer);
-    } else if (question.type === 'text') {
+    // Always render textarea for text questions (e.g., 'Please describe what you experience:')
+    if (question.type === 'text') {
         const textInput = document.createElement('textarea');
         textInput.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm';
         textInput.rows = 3;
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
         questionDiv.appendChild(textInput);
+        // Render action buttons for all question types
+        const buttonRow = document.createElement('div');
+        buttonRow.className = 'flex flex-wrap gap-4 mt-6 justify-center';
+        const submitButton = document.createElement('button');
+        submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
+        submitButton.textContent = 'Submit Answer';
+        submitButton.onclick = () => submitCurrentQuestion();
+        buttonRow.appendChild(submitButton);
+        const skipQuestionButton = document.createElement('button');
+        skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
+        skipQuestionButton.textContent = 'Skip Question';
+        skipQuestionButton.onclick = () => skipQuestion();
+        buttonRow.appendChild(skipQuestionButton);
+        const skipTrialButton = document.createElement('button');
+        skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
+        skipTrialButton.textContent = 'Skip Trial';
+        skipTrialButton.onclick = skipTrial;
+        buttonRow.appendChild(skipTrialButton);
+        const skipPhaseButton = document.createElement('button');
+        skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
+        skipPhaseButton.textContent = 'Skip Phase';
+        skipPhaseButton.onclick = skipPhase;
+        buttonRow.appendChild(skipPhaseButton);
+        questionDiv.appendChild(buttonRow);
+        questionsContainer.appendChild(questionDiv);
+        return;
+    }
+
+    // Add custom styles for the slider
+    const style = document.createElement('style');
+    style.textContent = `
+        .horizontal-slider {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            outline: none;
+        }
+        .vertical-slider {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 300px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            outline: none;
+            transform: rotate(270deg);
+            margin: 20px auto;
+        }
+        .horizontal-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 8px;
+            height: 24px;
+            background: #4f46e5;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .vertical-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 8px;
+            background: #4f46e5;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .horizontal-slider::-webkit-slider-thumb:hover,
+        .vertical-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        .horizontal-slider::-moz-range-thumb {
+            width: 8px;
+            height: 24px;
+            background: #4f46e5;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s ease;
+        }
+        .vertical-slider::-moz-range-thumb {
+            width: 24px;
+            height: 8px;
+            background: #4f46e5;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s ease;
+        }
+        .horizontal-slider::-moz-range-thumb:hover,
+        .vertical-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+        }
+        .horizontal-slider::-moz-range-track {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+        .vertical-slider::-moz-range-track {
+            width: 24px;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+        .horizontal-slider:focus,
+        .vertical-slider:focus {
+            background: #d1d5db;
+        }
+        .horizontal-labels {
+            display: flex;
+            justify-content: space-between;
+            text-sm text-gray-500;
+        }
+        .slider-labels {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 300px;
+            margin-left: 10px;
+        }
+        .slider-label {
+            position: absolute;
+            text-align: right;
+            width: 120px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+    `;
+    document.head.appendChild(style);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = question.min;
+    slider.max = question.max;
+    slider.value = (question.min + question.max) / 2;
+    slider.id = `question-${question.id}`;
+
+    const labelsContainer = document.createElement('div');
+
+    // Custom labels for intensity-related questions
+    if (question.id !== 'liking') {
+        // --- IMPROVED TRUE VERTICAL GLMS SLIDER WITH RECTANGULAR THUMB AND CLOSE LABELS ---
+        const glmsContainer = document.createElement('div');
+        glmsContainer.style.display = 'flex';
+        glmsContainer.style.justifyContent = 'center';
+        glmsContainer.style.alignItems = 'center';
+        glmsContainer.style.height = '340px';
+        glmsContainer.style.width = '100%';
+
+        // Vertical slider wrapper
+        const verticalSliderWrapper = document.createElement('div');
+        verticalSliderWrapper.style.position = 'relative';
+        verticalSliderWrapper.style.height = '300px';
+        verticalSliderWrapper.style.width = '32px';
+        verticalSliderWrapper.style.display = 'flex';
+        verticalSliderWrapper.style.justifyContent = 'center';
+
+        // The vertical slider (input range)
+        const verticalSlider = document.createElement('input');
+        verticalSlider.type = 'range';
+        verticalSlider.min = question.min;
+        verticalSlider.max = question.max;
+        verticalSlider.value = (question.min + question.max) / 2;
+        verticalSlider.id = `question-${question.id}`;
+        verticalSlider.style.writingMode = 'bt-lr'; // vertical
+        verticalSlider.style.WebkitAppearance = 'slider-vertical';
+        verticalSlider.style.appearance = 'slider-vertical';
+        verticalSlider.style.width = '32px';
+        verticalSlider.style.height = '300px';
+        verticalSlider.style.margin = '0';
+        verticalSlider.style.background = 'transparent';
+        verticalSlider.className = 'vertical-glms-slider-rect';
+
+        // Custom style for vertical slider with rectangular thumb (EXACTLY MATCH horizontal-slider)
+        const style = document.createElement('style');
+        style.textContent = `
+            input.vertical-glms-slider-rect {
+                -webkit-appearance: slider-vertical;
+                appearance: slider-vertical;
+                width: 32px;
+                height: 300px;
+                background: transparent;
+                outline: none;
+                margin: 0;
+                padding: 0;
+            }
+            input.vertical-glms-slider-rect::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 8px;
+                height: 24px;
+                background: #4f46e5;
+                border-radius: 2px;
+                cursor: pointer;
+                border: none;
+                transition: transform 0.1s ease;
+            }
+            input.vertical-glms-slider-rect:focus::-webkit-slider-thumb,
+            input.vertical-glms-slider-rect:hover::-webkit-slider-thumb {
+                transform: scale(1.1);
+                background: #6366f1;
+            }
+            input.vertical-glms-slider-rect::-webkit-slider-runnable-track {
+                width: 8px;
+                height: 300px;
+                background: #e5e7eb;
+                border-radius: 8px;
+                margin: 0 auto;
+                box-shadow: 0 0 0 1px #cbd5e1;
+            }
+            input.vertical-glms-slider-rect:focus {
+                outline: none;
+            }
+            input.vertical-glms-slider-rect::-moz-range-thumb {
+                width: 8px;
+                height: 24px;
+                background: #4f46e5;
+                border-radius: 2px;
+                cursor: pointer;
+                border: none;
+                transition: transform 0.1s ease;
+            }
+            input.vertical-glms-slider-rect:focus::-moz-range-thumb,
+            input.vertical-glms-slider-rect:hover::-moz-range-thumb {
+                transform: scale(1.1);
+                background: #6366f1;
+            }
+            input.vertical-glms-slider-rect::-moz-range-track {
+                width: 8px;
+                height: 300px;
+                background: #e5e7eb;
+                border-radius: 8px;
+                margin: 0 auto;
+                box-shadow: 0 0 0 1px #cbd5e1;
+            }
+            input.vertical-glms-slider-rect::-ms-fill-lower {
+                background: #e5e7eb;
+                border-radius: 8px;
+            }
+            input.vertical-glms-slider-rect::-ms-fill-upper {
+                background: #e5e7eb;
+                border-radius: 8px;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // GLMS scale labels and their relative positions (0 = bottom, 1 = top)
+        const intensityLabels = [
+            { text: 'Strongest Imaginable', value: 95.499, pos: 0 },
+            { text: 'Very Strong', value: 50.119, pos: 0.25 },
+            { text: 'Strong', value: 33.113, pos: 0.40 },
+            { text: 'Moderate', value: 16.218, pos: 0.60 },
+            { text: 'Weak', value: 5.754, pos: 0.80 },
+            { text: 'Barely detectable', value: 1.380, pos: 1 }
+        ];
+
+        // Labels container (relative for absolute label placement)
+        const labelsContainer = document.createElement('div');
+        labelsContainer.style.position = 'relative';
+        labelsContainer.style.height = '300px';
+        labelsContainer.style.width = '160px';
+        labelsContainer.style.marginLeft = '8px';
+        labelsContainer.style.display = 'flex';
+        labelsContainer.style.flexDirection = 'column';
+        labelsContainer.style.justifyContent = 'space-between';
+
+        // Place each label at the correct vertical position
+        intensityLabels.forEach(label => {
+            const labelDiv = document.createElement('div');
+            labelDiv.style.position = 'absolute';
+            labelDiv.style.left = '0';
+            labelDiv.style.top = `calc(${label.pos * 100}% - 16px)`;
+            labelDiv.style.fontSize = '16px';
+            labelDiv.style.color = '#334155';
+            labelDiv.style.fontWeight = '500';
+            labelDiv.style.fontFamily = 'Inter, Arial, sans-serif';
+            labelDiv.style.display = 'flex';
+            labelDiv.style.alignItems = 'center';
+            labelDiv.style.whiteSpace = 'nowrap';
+            // Thin tick mark
+            const tick = document.createElement('div');
+            tick.style.width = '14px';
+            tick.style.height = '2px';
+            tick.style.background = '#a1a1aa';
+            tick.style.marginRight = '6px';
+            tick.style.borderRadius = '2px';
+            labelDiv.appendChild(tick);
+            // Label text
+            const labelText = document.createElement('span');
+            labelText.textContent = label.text;
+            labelDiv.appendChild(labelText);
+            labelsContainer.appendChild(labelDiv);
+        });
+
+        verticalSliderWrapper.appendChild(verticalSlider);
+        glmsContainer.appendChild(verticalSliderWrapper);
+        glmsContainer.appendChild(labelsContainer);
+        questionDiv.appendChild(glmsContainer);
+    } else {
+        // Original horizontal slider for liking
+        slider.className = 'horizontal-slider';
+        labelsContainer.className = 'horizontal-labels';
+        const minLabel = document.createElement('span');
+        minLabel.textContent = question.labels[0];
+        const maxLabel = document.createElement('span');
+        maxLabel.textContent = question.labels[1];
+        labelsContainer.appendChild(minLabel);
+        labelsContainer.appendChild(maxLabel);
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(labelsContainer);
+        questionDiv.appendChild(sliderContainer);
     }
     
     // Unified action buttons row
