@@ -427,6 +427,7 @@ const state = {
     trialSequences: null,
     currentFlavorPart: 'orthonasal', // 'orthonasal' or 'retronasal'
     currentFlavorTrial: 1, // 1 or 2
+    shuffledQuestions: {}
 };
 
 // Fisher-Yates shuffle algorithm
@@ -621,14 +622,32 @@ function createSurveyQuestions() {
     
     document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
     
-    // No progress bar
+    // Create a copy of questions array and shuffle it
+    const shuffledQuestions = [...phase.questions];
+    shuffleArray(shuffledQuestions);
+    
+    // Store shuffled questions in state for this trial
+    let trialKey;
+    if (state.currentPhase === 'flavor') {
+        trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
+    } else {
+        trialKey = `trial_${state.currentTrial}`;
+    }
+    
+    if (!state.shuffledQuestions) {
+        state.shuffledQuestions = {};
+    }
+    if (!state.shuffledQuestions[state.currentPhase]) {
+        state.shuffledQuestions[state.currentPhase] = {};
+    }
+    state.shuffledQuestions[state.currentPhase][trialKey] = shuffledQuestions;
     
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
     
-    showQuestion(state.currentQuestion);
+    showQuestion(1);
 }
 
 function injectSurveyStylesOnce() {
@@ -776,22 +795,37 @@ function injectSurveyStylesOnce() {
 
 function showQuestion(questionNumber) {
     const phase = experimentConfig.phases[state.currentPhase];
-    const question = phase.questions[questionNumber - 1];
+    let trialKey;
+    if (state.currentPhase === 'flavor') {
+        trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
+    } else {
+        trialKey = `trial_${state.currentTrial}`;
+    }
+    
+    // Get the shuffled questions for this trial
+    const shuffledQuestions = state.shuffledQuestions[state.currentPhase][trialKey];
+    const question = shuffledQuestions[questionNumber - 1];
+    
     if (!question) {
         console.error('Question not found:', questionNumber);
         return;
     }
+    
     const questionsContainer = document.getElementById('questions-container');
     questionsContainer.innerHTML = '';
     state.currentQuestion = questionNumber;
+    
     const questionDiv = document.createElement('div');
     questionDiv.className = 'bg-white p-8 rounded-lg shadow-lg space-y-6';
+    
     const questionText = document.createElement('p');
     questionText.className = 'font-semibold text-lg text-gray-800 mb-2';
     questionText.textContent = question.question;
     questionDiv.appendChild(questionText);
-    const sliderContainerQ = document.createElement('div'); // unique name
+    
+    const sliderContainerQ = document.createElement('div');
     sliderContainerQ.className = 'space-y-2';
+    
     if (question.type === 'text') {
         const textInput = document.createElement('textarea');
         textInput.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm';
@@ -799,139 +833,115 @@ function showQuestion(questionNumber) {
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
         questionDiv.appendChild(textInput);
-        // Render action buttons for all question types
-        const buttonRow = document.createElement('div');
-        buttonRow.className = 'flex flex-wrap gap-4 mt-6 justify-center';
-        const submitButton = document.createElement('button');
-        submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
-        submitButton.textContent = 'Submit Answer';
-        submitButton.onclick = () => submitCurrentQuestion();
-        buttonRow.appendChild(submitButton);
-        const skipQuestionButton = document.createElement('button');
-        skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
-        skipQuestionButton.textContent = 'Skip Question';
-        skipQuestionButton.onclick = () => skipQuestion();
-        buttonRow.appendChild(skipQuestionButton);
-        const skipTrialButton = document.createElement('button');
-        skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
-        skipTrialButton.textContent = 'Skip Trial';
-        skipTrialButton.onclick = skipTrial;
-        buttonRow.appendChild(skipTrialButton);
-        const skipPhaseButton = document.createElement('button');
-        skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
-        skipPhaseButton.textContent = 'Skip Phase';
-        skipPhaseButton.onclick = skipPhase;
-        buttonRow.appendChild(skipPhaseButton);
-        questionDiv.appendChild(buttonRow);
-        questionsContainer.appendChild(questionDiv);
-        return;
-    }
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = question.min;
-    slider.max = question.max;
-    slider.value = (question.min + question.max) / 2;
-    slider.id = `question-${question.id}`;
-    if (question.id !== 'liking') {
-        slider.className = 'vertical-slider';
-        // Create container for vertical slider with labels
-        const verticalContainerQ = document.createElement('div');
-        verticalContainerQ.className = 'vertical-slider-container';
-        // Slider wrapper
-        const sliderWrapperQ = document.createElement('div');
-        sliderWrapperQ.className = 'vertical-slider-wrapper';
-        sliderWrapperQ.appendChild(slider);
-        // Labels container
-        const verticalLabelsContainerQ = document.createElement('div');
-        verticalLabelsContainerQ.className = 'vertical-labels-container';
-        // GLMS scale labels (from top to bottom)
-        const intensityLabels = [
-            { text: 'Strongest Imaginable', value: 95.499 },
-            { text: 'Very Strong', value: 50.119 },
-            { text: 'Strong', value: 33.113 },
-            { text: 'Moderate', value: 16.218 },
-            { text: 'Weak', value: 5.754 },
-            { text: 'Barely detectable', value: 1.380 }
-        ];
-        intensityLabels.forEach(label => {
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'vertical-label';
-            labelDiv.innerHTML = `<span class="label-tick"></span><span class="label-text">${label.text}</span>`;
-            verticalLabelsContainerQ.appendChild(labelDiv);
-        });
-        verticalContainerQ.appendChild(sliderWrapperQ);
-        verticalContainerQ.appendChild(verticalLabelsContainerQ);
-        questionDiv.appendChild(verticalContainerQ);
     } else {
-        // Original horizontal slider for liking
-        slider.className = 'horizontal-slider';
-        const labelsContainerQ = document.createElement('div');
-        labelsContainerQ.className = 'horizontal-labels';
-        const minLabel = document.createElement('span');
-        minLabel.textContent = question.labels[0];
-        const maxLabel = document.createElement('span');
-        maxLabel.textContent = question.labels[1];
-        labelsContainerQ.appendChild(minLabel);
-        labelsContainerQ.appendChild(maxLabel);
-        sliderContainerQ.appendChild(slider);
-        sliderContainerQ.appendChild(labelsContainerQ);
-        questionDiv.appendChild(sliderContainerQ);
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = question.min;
+        slider.max = question.max;
+        slider.value = (question.min + question.max) / 2;
+        slider.id = `question-${question.id}`;
+        
+        if (question.id !== 'liking') {
+            slider.className = 'vertical-slider';
+            const verticalContainerQ = document.createElement('div');
+            verticalContainerQ.className = 'vertical-slider-container';
+            
+            const sliderWrapperQ = document.createElement('div');
+            sliderWrapperQ.className = 'vertical-slider-wrapper';
+            sliderWrapperQ.appendChild(slider);
+            
+            const verticalLabelsContainerQ = document.createElement('div');
+            verticalLabelsContainerQ.className = 'vertical-labels-container';
+            
+            const intensityLabels = [
+                { text: 'Strongest Imaginable', value: 95.499 },
+                { text: 'Very Strong', value: 50.119 },
+                { text: 'Strong', value: 33.113 },
+                { text: 'Moderate', value: 16.218 },
+                { text: 'Weak', value: 5.754 },
+                { text: 'Barely detectable', value: 1.380 }
+            ];
+            
+            intensityLabels.forEach(label => {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'vertical-label';
+                labelDiv.innerHTML = `<span class="label-tick"></span><span class="label-text">${label.text}</span>`;
+                verticalLabelsContainerQ.appendChild(labelDiv);
+            });
+            
+            verticalContainerQ.appendChild(sliderWrapperQ);
+            verticalContainerQ.appendChild(verticalLabelsContainerQ);
+            questionDiv.appendChild(verticalContainerQ);
+        } else {
+            slider.className = 'horizontal-slider';
+            const labelsContainerQ = document.createElement('div');
+            labelsContainerQ.className = 'horizontal-labels';
+            const minLabel = document.createElement('span');
+            minLabel.textContent = question.labels[0];
+            const maxLabel = document.createElement('span');
+            maxLabel.textContent = question.labels[1];
+            labelsContainerQ.appendChild(minLabel);
+            labelsContainerQ.appendChild(maxLabel);
+            sliderContainerQ.appendChild(slider);
+            sliderContainerQ.appendChild(labelsContainerQ);
+            questionDiv.appendChild(sliderContainerQ);
+        }
     }
+    
     // Unified action buttons row
     const buttonRow = document.createElement('div');
     buttonRow.className = 'flex flex-wrap gap-4 mt-6 justify-center';
+    
     const submitButton = document.createElement('button');
     submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
     submitButton.textContent = 'Submit Answer';
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
+    
     const skipQuestionButton = document.createElement('button');
     skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
     skipQuestionButton.textContent = 'Skip Question';
     skipQuestionButton.onclick = () => skipQuestion();
     buttonRow.appendChild(skipQuestionButton);
+    
     const skipTrialButton = document.createElement('button');
     skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
     skipTrialButton.textContent = 'Skip Trial';
     skipTrialButton.onclick = skipTrial;
     buttonRow.appendChild(skipTrialButton);
+    
     const skipPhaseButton = document.createElement('button');
     skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
     skipPhaseButton.textContent = 'Skip Phase';
     skipPhaseButton.onclick = skipPhase;
     buttonRow.appendChild(skipPhaseButton);
+    
     questionDiv.appendChild(buttonRow);
-    // If last question, show continue button after submit
-    if (state.currentQuestion > phase.questions.length) {
-        const continueDiv = document.createElement('div');
-        continueDiv.className = 'text-center p-6';
-        const continueBtn = document.createElement('button');
-        continueBtn.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-indigo-700 transition-colors text-lg font-semibold';
-        continueBtn.textContent = 'Continue to Next Stimulus';
-        continueBtn.onclick = moveToNextStep;
-        continueDiv.appendChild(continueBtn);
-        questionsContainer.appendChild(continueDiv);
-        return;
-    }
     questionsContainer.appendChild(questionDiv);
 }
 
 function submitCurrentQuestion() {
     const phase = experimentConfig.phases[state.currentPhase];
-    const question = phase.questions[state.currentQuestion - 1];
-    const element = document.getElementById(`question-${question.id}`);
-    if (!element) return;
-    if (question.type === 'text' && !element.value.trim()) {
-        alert('Please provide an answer before submitting.');
-        return;
-    }
-    // Save the current answer
     let trialKey;
     if (state.currentPhase === 'flavor') {
         trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
     } else {
         trialKey = `trial_${state.currentTrial}`;
     }
+    
+    // Get the shuffled questions for this trial
+    const shuffledQuestions = state.shuffledQuestions[state.currentPhase][trialKey];
+    const question = shuffledQuestions[state.currentQuestion - 1];
+    
+    const element = document.getElementById(`question-${question.id}`);
+    if (!element) return;
+    
+    if (question.type === 'text' && !element.value.trim()) {
+        alert('Please provide an answer before submitting.');
+        return;
+    }
+    
+    // Save the current answer
     const stimulusKey = `stimulus_${state.currentStimulus}`;
     if (!state.answers[state.currentPhase]) {
         state.answers[state.currentPhase] = {};
@@ -945,12 +955,15 @@ function submitCurrentQuestion() {
             responses: {}
         };
     }
+    
     state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = 
         question.type === 'slider' ? element.value : element.value.trim();
+    
     saveToLocalStorage();
+    
     // Move to next question or finish if all questions are answered
     const nextQuestion = state.currentQuestion + 1;
-    if (nextQuestion <= phase.questions.length) {
+    if (nextQuestion <= shuffledQuestions.length) {
         showQuestion(nextQuestion);
     } else {
         // All questions answered, show completion message
@@ -970,13 +983,17 @@ function submitCurrentQuestion() {
 function skipQuestion() {
     // Save null/empty for this question and move to next
     const phase = experimentConfig.phases[state.currentPhase];
-    const question = phase.questions[state.currentQuestion - 1];
     let trialKey;
     if (state.currentPhase === 'flavor') {
         trialKey = `trial_${state.currentFlavorTrial}_${state.currentFlavorPart}`;
     } else {
         trialKey = `trial_${state.currentTrial}`;
     }
+    
+    // Get the shuffled questions for this trial
+    const shuffledQuestions = state.shuffledQuestions[state.currentPhase][trialKey];
+    const question = shuffledQuestions[state.currentQuestion - 1];
+    
     const stimulusKey = `stimulus_${state.currentStimulus}`;
     if (!state.answers[state.currentPhase]) state.answers[state.currentPhase] = {};
     if (!state.answers[state.currentPhase][trialKey]) state.answers[state.currentPhase][trialKey] = {};
@@ -986,12 +1003,13 @@ function skipQuestion() {
             responses: {}
         };
     }
+    
     state.answers[state.currentPhase][trialKey][stimulusKey].responses[question.id] = null;
     saveToLocalStorage();
+    
     // Move to next question
     const nextQuestion = state.currentQuestion + 1;
-    const phaseQuestions = experimentConfig.phases[state.currentPhase].questions.length;
-    if (nextQuestion <= phaseQuestions) {
+    if (nextQuestion <= shuffledQuestions.length) {
         showQuestion(nextQuestion);
     } else {
         // All questions answered, show completion message
