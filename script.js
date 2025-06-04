@@ -423,12 +423,275 @@ const state = {
     port: null,
     writer: null,
     reader: null,
-    testStarted: false,
     trialSequences: null,
     currentFlavorPart: 'orthonasal', // 'orthonasal' or 'retronasal'
     currentFlavorTrial: 1, // 1 or 2
-    shuffledQuestions: {}
+    shuffledQuestions: {},
+    isConnected: false,
+    isExperimentRunning: false,
+    experimentPaused: false
 };
+
+// DOM Elements
+const connectDeviceBtn = document.getElementById('connect-device-btn');
+const connectionStatus = document.getElementById('connection-status');
+const startExperimentBtn = document.getElementById('start-experiment-btn');
+const participantInput = document.getElementById('participant-number');
+const startParticipantBtn = document.getElementById('start-participant-btn');
+
+// Screen elements
+const participantScreen = document.getElementById('participant-screen');
+const welcomeScreen = document.getElementById('welcome-screen');
+const testScreen = document.getElementById('test-screen');
+const surveyScreen = document.getElementById('survey-screen');
+const breakScreen = document.getElementById('break-screen');
+const completedScreen = document.getElementById('completed-screen');
+
+// Connection handling
+async function connectToDevice() {
+    try {
+        // Request port and open connection
+        state.port = await navigator.serial.requestPort();
+        await state.port.open({ baudRate: 9600 });
+        
+        // Set up reader and writer
+        const textDecoder = new TextDecoderStream();
+        state.port.readable.pipeTo(textDecoder.writable);
+        state.reader = textDecoder.readable.getReader();
+        
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(state.port.writable);
+        state.writer = textEncoder.writable.getWriter();
+
+        // Update UI
+        state.isConnected = true;
+        updateConnectionStatus();
+        startReadingData();
+
+        // Enable experiment start button if participant number is set
+        if (state.participantNumber) {
+            startExperimentBtn.disabled = false;
+            startExperimentBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            startExperimentBtn.classList.add('bg-primary', 'hover:bg-indigo-700');
+        }
+    } catch (error) {
+        console.error('Connection error:', error);
+        handleDisconnection();
+    }
+}
+
+async function handleDisconnection() {
+    state.isConnected = false;
+    state.experimentPaused = true;
+    
+    // Close existing connections
+    if (state.reader) {
+        try {
+            await state.reader.cancel();
+        } catch (error) {
+            console.error('Error closing reader:', error);
+        }
+    }
+    if (state.writer) {
+        try {
+            await state.writer.close();
+        } catch (error) {
+            console.error('Error closing writer:', error);
+        }
+    }
+    if (state.port) {
+        try {
+            await state.port.close();
+        } catch (error) {
+            console.error('Error closing port:', error);
+        }
+    }
+
+    // Reset connection state
+    state.port = null;
+    state.reader = null;
+    state.writer = null;
+
+    // Update UI
+    updateConnectionStatus();
+    
+    // Show warning message
+    const warningDiv = document.createElement('div');
+    warningDiv.id = 'disconnect-warning';
+    warningDiv.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50 flex items-center';
+    warningDiv.innerHTML = `
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span class="font-medium">Device is disconnected!</span>
+    `;
+    
+    // Remove any existing warning
+    const existingWarning = document.getElementById('disconnect-warning');
+    if (existingWarning) {
+        existingWarning.remove();
+    }
+    
+    document.body.appendChild(warningDiv);
+    
+    // Remove warning after 5 seconds
+    setTimeout(() => {
+        const warning = document.getElementById('disconnect-warning');
+        if (warning) {
+            warning.remove();
+        }
+    }, 5000);
+    
+    // If experiment was running, show pause message
+    if (state.isExperimentRunning) {
+        showPauseMessage();
+    }
+}
+
+function updateConnectionStatus() {
+    if (state.isConnected) {
+        connectionStatus.textContent = 'Connected';
+        connectionStatus.classList.remove('bg-red-100', 'text-red-600');
+        connectionStatus.classList.add('bg-green-100', 'text-green-600');
+        connectDeviceBtn.textContent = 'Disconnect Device';
+    } else {
+        connectionStatus.textContent = 'Disconnected';
+        connectionStatus.classList.remove('bg-green-100', 'text-green-600');
+        connectionStatus.classList.add('bg-red-100', 'text-red-600');
+        connectDeviceBtn.textContent = 'Connect Device';
+    }
+}
+
+function showPauseMessage() {
+    // Create or update pause message
+    let pauseMessage = document.getElementById('pause-message');
+    if (!pauseMessage) {
+        pauseMessage = document.createElement('div');
+        pauseMessage.id = 'pause-message';
+        pauseMessage.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        document.body.appendChild(pauseMessage);
+    }
+
+    pauseMessage.innerHTML = `
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 class="text-2xl font-bold text-warning mb-4">Experiment Paused</h2>
+            <p class="text-gray-600 mb-6">Device disconnected. Please reconnect to continue the experiment.</p>
+            <button id="resume-experiment" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                Resume Experiment
+            </button>
+        </div>
+    `;
+
+    // Add event listener to resume button
+    document.getElementById('resume-experiment').addEventListener('click', async () => {
+        await connectToDevice();
+        if (state.isConnected) {
+            pauseMessage.remove();
+            state.experimentPaused = false;
+        }
+    });
+}
+
+async function startReadingData() {
+    try {
+        while (state.isConnected) {
+            const { value, done } = await state.reader.read();
+            if (done) {
+                handleDisconnection();
+                break;
+            }
+            // Handle incoming data
+            console.log('Received:', value);
+        }
+    } catch (error) {
+        console.error('Error reading data:', error);
+        await handleDisconnection();
+    }
+}
+
+// Event Listeners
+connectDeviceBtn.addEventListener('click', async () => {
+    if (state.isConnected) {
+        await handleDisconnection();
+    } else {
+        await connectToDevice();
+    }
+});
+
+startParticipantBtn.addEventListener('click', () => {
+    const participantNumber = parseInt(participantInput.value);
+    if (participantNumber >= 1 && participantNumber <= 16) {
+        state.participantNumber = participantNumber;
+        participantScreen.classList.add('hidden');
+        welcomeScreen.classList.remove('hidden');
+        document.getElementById('participant-status').textContent = `Participant: ${participantNumber}`;
+    } else {
+        alert('Please enter a valid participant number (1-16)');
+    }
+});
+
+startExperimentBtn.addEventListener('click', () => {
+    if (state.isConnected && state.participantNumber) {
+        state.isExperimentRunning = true;
+        welcomeScreen.classList.add('hidden');
+        testScreen.classList.remove('hidden');
+    }
+});
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && state.isConnected) {
+        handleDisconnection();
+    }
+});
+
+// Handle window unload
+window.addEventListener('beforeunload', async () => {
+    if (state.isConnected) {
+        await handleDisconnection();
+    }
+});
+
+// Add skip trial and skip phase button event listeners
+document.getElementById('skip-trial-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
+        if (state.currentPhase === 'flavor') {
+            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+            // Skip to end of current trial
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        } else {
+            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+            // Skip to end of current trial
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        }
+    }
+});
+
+document.getElementById('skip-phase-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
+        if (state.currentPhase === 'flavor') {
+            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+            // If in orthonasal, skip to end of last trial in orthonasal
+            if (state.currentFlavorPart === 'orthonasal') {
+                state.currentFlavorTrial = 2;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            } else {
+                // If in retronasal, skip to end
+                state.currentFlavorTrial = 2;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        } else {
+            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+            state.currentTrial = 3;
+            state.currentStimulus = totalStimuli;
+            moveToNextStep();
+        }
+    }
+});
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray(array) {
@@ -535,6 +798,7 @@ async function readFromSerial() {
         }
     } catch (error) {
         console.error('Error reading from serial:', error);
+        await handleDisconnection();
     }
 }
 
@@ -897,24 +1161,6 @@ function showQuestion(questionNumber) {
     submitButton.textContent = 'Submit Answer';
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
-    
-    // const skipQuestionButton = document.createElement('button');
-    // skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
-    // skipQuestionButton.textContent = 'Skip Question';
-    // skipQuestionButton.onclick = () => skipQuestion();
-    // buttonRow.appendChild(skipQuestionButton);
-    
-    // const skipTrialButton = document.createElement('button');
-    // skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
-    // skipTrialButton.textContent = 'Skip Trial';
-    // skipTrialButton.onclick = skipTrial;
-    // buttonRow.appendChild(skipTrialButton);
-    
-    // const skipPhaseButton = document.createElement('button');
-    // skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
-    // skipPhaseButton.textContent = 'Skip Phase';
-    // skipPhaseButton.onclick = skipPhase;
-    // buttonRow.appendChild(skipPhaseButton);
     
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
@@ -1301,63 +1547,40 @@ function startParticipant() {
     updateExperimentStatus();
 }
 
-function skipTrial() {
-    if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
-        if (state.currentPhase === 'flavor') {
-            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
-            // Skip to end of current trial
-            state.currentStimulus = totalStimuli;
-            moveToNextStep();
-        } else {
-            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
-            // Skip to end of current trial
-            state.currentStimulus = totalStimuli;
-            moveToNextStep();
-        }
-    }
-}
-
-function skipPhase() {
-    if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
-        if (state.currentPhase === 'flavor') {
-            const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
-            // If in orthonasal, skip to end of last trial in orthonasal
-            if (state.currentFlavorPart === 'orthonasal') {
-                state.currentFlavorTrial = 2;
-                state.currentStimulus = totalStimuli;
-                moveToNextStep();
-            } else {
-                // If in retronasal, skip to end
-                state.currentFlavorTrial = 2;
-                state.currentStimulus = totalStimuli;
-                moveToNextStep();
-            }
-        } else {
-            const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
-            state.currentTrial = 3;
-            state.currentStimulus = totalStimuli;
-            moveToNextStep();
-        }
-    }
-}
-
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if Web Serial API is available
     if (!('serial' in navigator)) {
-        alert('Web Serial API is not supported in your browser. Please use Chrome or Edge.');
         const connectBtn = document.getElementById('connect-device-btn');
-        if (connectBtn) connectBtn.disabled = true;
-    }
-    
-    const savedData = localStorage.getItem('flavourSyncAnswers');
-    if (savedData) {
-        try {
-            state.answers = JSON.parse(savedData);
-        } catch (e) {
-            console.error('Error parsing saved data:', e);
+        const connStatus = document.getElementById('connection-status');
+        if (connectBtn) {
+            connectBtn.disabled = true;
+            connectBtn.title = 'Web Serial API is not supported in your browser';
         }
+        if (connStatus) {
+            connStatus.textContent = 'Not Supported';
+            connStatus.classList.remove('bg-red-100', 'text-red-600');
+            connStatus.classList.add('bg-gray-100', 'text-gray-600');
+        }
+        console.error('Web Serial API is not supported in your browser. Please use Chrome or Edge.');
     }
-    
+
+    // Check if running in secure context
+    if (!window.isSecureContext) {
+        const connectBtn = document.getElementById('connect-device-btn');
+        const connStatus = document.getElementById('connection-status');
+        if (connectBtn) {
+            connectBtn.disabled = true;
+            connectBtn.title = 'Web Serial API requires a secure context (HTTPS or localhost)';
+        }
+        if (connStatus) {
+            connStatus.textContent = 'Not Secure';
+            connStatus.classList.remove('bg-red-100', 'text-red-600');
+            connStatus.classList.add('bg-gray-100', 'text-gray-600');
+        }
+        console.error('Web Serial API requires a secure context (HTTPS or localhost)');
+    }
+
     // Helper function to safely add event listeners
     function addEventListenerIfExists(elementId, event, handler) {
         const element = document.getElementById(elementId);
@@ -1378,5 +1601,47 @@ document.addEventListener('DOMContentLoaded', function() {
     addEventListenerIfExists('skip-survey-btn', 'click', skipSurvey);
     addEventListenerIfExists('continue-btn', 'click', continueAfterBreak);
     addEventListenerIfExists('download-results-btn', 'click', downloadResults);
+    
+    // Add skip trial and skip phase button event listeners
+    addEventListenerIfExists('skip-trial-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
+    addEventListenerIfExists('skip-phase-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // If in orthonasal, skip to end of last trial in orthonasal
+                if (state.currentFlavorPart === 'orthonasal') {
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                } else {
+                    // If in retronasal, skip to end
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                }
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                state.currentTrial = 3;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
     injectSurveyStylesOnce();
 });

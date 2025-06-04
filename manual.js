@@ -1354,5 +1354,47 @@ document.addEventListener('DOMContentLoaded', function() {
     addEventListenerIfExists('skip-survey-btn', 'click', skipSurvey);
     addEventListenerIfExists('continue-btn', 'click', continueAfterBreak);
     addEventListenerIfExists('download-results-btn', 'click', downloadResults);
+    
+    // Add skip trial and skip phase button event listeners
+    addEventListenerIfExists('skip-trial-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
+    addEventListenerIfExists('skip-phase-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // If in orthonasal, skip to end of last trial in orthonasal
+                if (state.currentFlavorPart === 'orthonasal') {
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                } else {
+                    // If in retronasal, skip to end
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                }
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                state.currentTrial = 3;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
     injectSurveyStylesOnce();
 });
