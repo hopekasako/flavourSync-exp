@@ -423,7 +423,6 @@ const state = {
     port: null,
     writer: null,
     reader: null,
-    testStarted: false,
     trialSequences: null,
     currentFlavorPart: 'orthonasal', // 'orthonasal' or 'retronasal'
     currentFlavorTrial: 1, // 1 or 2
@@ -600,14 +599,20 @@ function updateTestInstructions() {
     }
     
     if (state.currentPhase === 'smell') {
-        instructions = `Please position your nose near the device. Click the button when ready to experience the smell.`;
-    } else if (state.currentPhase === 'taste') {
-        instructions = `Please place the mouthpiece in your mouth. Click the button when ready to experience the taste.`;
-    } else if (state.currentPhase === 'flavor') {
-        instructions = `Please position your nose near the device and place the mouthpiece in your mouth. Click the button when ready to experience the flavor.`;
-    }
+    instructions = `
+      Please pick up each vial in the order they are arranged on the table and smell as long as you wish.
+      When finished, place the vial back in its original position before picking up the next one.
+      Once you have finished all vials, proceed to complete the form.
+      \n<b>Note:</b> While filling out the form, do <u>not</u> smell again.
+    `;    } else if (state.currentPhase === 'taste' || state.currentPhase === 'flavor') {
+    instructions = `
+      Please pick up each vial in the order they are arranged on the table and taste as long as you wish.
+      When finished, place the vial back in its original position before picking up the next one.
+      Once you have finished all vials, proceed to complete the form.
+     \n<b>Note:</b> While filling out the form, do <u>not</u> taste again.
+    `;    }
     
-    document.getElementById('test-instructions').textContent = instructions;
+    document.getElementById('test-instructions').innerHTML = instructions;
 }
 
 function createSurveyQuestions() {
@@ -1153,7 +1158,7 @@ function downloadResults() {
     
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
-    downloadLink.download = `flavourSync System results participant ${state.participantNumber}.json`;
+    downloadLink.download = `flavourSync Manual results participant ${state.participantNumber}.json`;
     
     document.body.appendChild(downloadLink);
     downloadLink.click();
@@ -1161,43 +1166,6 @@ function downloadResults() {
 }
 
 async function activateTest() {
-    if (state.testStarted) return;
-    state.testStarted = true;
-    
-    document.getElementById('activate-btn').disabled = true;
-    
-    const stimulus = getCurrentStimulus();
-    const commands = getCurrentCommand();
-    
-    // Show system running message
-    const instructions = document.getElementById('test-instructions');
-    const originalText = instructions.textContent;
-    instructions.textContent = 'System is running... Please wait.';
-    instructions.classList.add('text-primary', 'font-medium');
-    
-    if (Array.isArray(commands)) {
-        // Handle flavor phase commands
-        for (const cmd of commands) {
-            if (cmd.delay > 0) {
-                await new Promise(resolve => setTimeout(resolve, cmd.delay));
-            }
-            await sendCommand(cmd.command_string);
-        }
-    } else if (commands) {
-        // Handle smell and taste phase commands
-        await sendCommand(commands);
-    }
-    
-    // Wait for 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
-    // Restore original text
-    instructions.textContent = originalText;
-    instructions.classList.remove('text-primary', 'font-medium');
-    
-    state.testStarted = false;
-    document.getElementById('activate-btn').disabled = false;
-    
     state.currentQuestion = 1; // Reset to first question for new survey
     showScreen('survey-screen');
     createSurveyQuestions();
