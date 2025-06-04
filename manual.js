@@ -903,23 +903,23 @@ function showQuestion(questionNumber) {
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
     
-    const skipQuestionButton = document.createElement('button');
-    skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
-    skipQuestionButton.textContent = 'Skip Question';
-    skipQuestionButton.onclick = () => skipQuestion();
-    buttonRow.appendChild(skipQuestionButton);
+    // const skipQuestionButton = document.createElement('button');
+    // skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
+    // skipQuestionButton.textContent = 'Skip Question';
+    // skipQuestionButton.onclick = () => skipQuestion();
+    // buttonRow.appendChild(skipQuestionButton);
     
-    const skipTrialButton = document.createElement('button');
-    skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
-    skipTrialButton.textContent = 'Skip Trial';
-    skipTrialButton.onclick = skipTrial;
-    buttonRow.appendChild(skipTrialButton);
+    // const skipTrialButton = document.createElement('button');
+    // skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
+    // skipTrialButton.textContent = 'Skip Trial';
+    // skipTrialButton.onclick = skipTrial;
+    // buttonRow.appendChild(skipTrialButton);
     
-    const skipPhaseButton = document.createElement('button');
-    skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
-    skipPhaseButton.textContent = 'Skip Phase';
-    skipPhaseButton.onclick = skipPhase;
-    buttonRow.appendChild(skipPhaseButton);
+    // const skipPhaseButton = document.createElement('button');
+    // skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
+    // skipPhaseButton.textContent = 'Skip Phase';
+    // skipPhaseButton.onclick = skipPhase;
+    // buttonRow.appendChild(skipPhaseButton);
     
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
@@ -1163,8 +1163,21 @@ function downloadResults() {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+        const moveBtn = document.querySelector('a[href="./system.html"] button');
+    if (moveBtn) {
+        moveBtn.disabled = false;
+        moveBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        moveBtn.classList.add('bg-primary', 'hover:bg-indigo-700', 'cursor-pointer');
+    }
 }
-
+document.addEventListener('DOMContentLoaded', function() {
+    const moveBtn = document.querySelector('a[href="./system.html"] button');
+    if (moveBtn) {
+        moveBtn.disabled = true;
+        moveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+        moveBtn.classList.remove('bg-primary', 'hover:bg-indigo-700', 'cursor-pointer');
+    }
+});
 async function activateTest() {
     state.currentQuestion = 1; // Reset to first question for new survey
     showScreen('survey-screen');
@@ -1227,12 +1240,7 @@ function moveToNextStep() {
             state.currentStimulus = 1;
             showScreen('break-screen');
         } else if (state.currentPhase === 'taste') {
-            state.currentPhase = 'flavor';
-            // Reset flavor part/trial/stimulus
-            state.currentFlavorPart = 'orthonasal';
-            state.currentFlavorTrial = 1;
-            state.currentStimulus = 1;
-            showScreen('break-screen');
+    showScreen('completed-screen');
         } else {
             showScreen('completed-screen');
         }

@@ -898,23 +898,23 @@ function showQuestion(questionNumber) {
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
     
-    const skipQuestionButton = document.createElement('button');
-    skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
-    skipQuestionButton.textContent = 'Skip Question';
-    skipQuestionButton.onclick = () => skipQuestion();
-    buttonRow.appendChild(skipQuestionButton);
+    // const skipQuestionButton = document.createElement('button');
+    // skipQuestionButton.className = 'px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition-colors text-lg font-semibold';
+    // skipQuestionButton.textContent = 'Skip Question';
+    // skipQuestionButton.onclick = () => skipQuestion();
+    // buttonRow.appendChild(skipQuestionButton);
     
-    const skipTrialButton = document.createElement('button');
-    skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
-    skipTrialButton.textContent = 'Skip Trial';
-    skipTrialButton.onclick = skipTrial;
-    buttonRow.appendChild(skipTrialButton);
+    // const skipTrialButton = document.createElement('button');
+    // skipTrialButton.className = 'px-6 py-3 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition-colors text-lg font-semibold';
+    // skipTrialButton.textContent = 'Skip Trial';
+    // skipTrialButton.onclick = skipTrial;
+    // buttonRow.appendChild(skipTrialButton);
     
-    const skipPhaseButton = document.createElement('button');
-    skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
-    skipPhaseButton.textContent = 'Skip Phase';
-    skipPhaseButton.onclick = skipPhase;
-    buttonRow.appendChild(skipPhaseButton);
+    // const skipPhaseButton = document.createElement('button');
+    // skipPhaseButton.className = 'px-6 py-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors text-lg font-semibold';
+    // skipPhaseButton.textContent = 'Skip Phase';
+    // skipPhaseButton.onclick = skipPhase;
+    // buttonRow.appendChild(skipPhaseButton);
     
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
