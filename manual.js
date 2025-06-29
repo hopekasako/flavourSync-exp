@@ -260,11 +260,11 @@ const experimentData = {
         section_3_orthonasal: [ // Flavor Phase - Orthonasal
             { experiment_id: 1, commands: [
                 { command_string: "6 1 6000", delay: 0 },
-                { command_string: "6 1 3000 200", delay: 3000 }
+                { command_string: "6 1 4000 200", delay: 2000 }
             ]},
             { experiment_id: 2, commands: [
                 { command_string: "5 1 6000", delay: 0 },
-                { command_string: "5 1 3000 200", delay: 3000 }
+                { command_string: "5 1 4000 200", delay: 2000 }
             ]}
         ],
         section_3_retronasal: [ // Flavor Phase - Retronasal
@@ -1084,7 +1084,7 @@ function collectSurveyAnswers() {
 }
 
 function saveToLocalStorage() {
-    localStorage.setItem('flavourSyncAnswers', JSON.stringify(state.answers));
+    localStorage.setItem('flavourSyncAnswersManual', JSON.stringify(state.answers));
 }
 
 function downloadResults() {
@@ -1247,6 +1247,41 @@ function moveToNextStep() {
     }
 }
 
+
+function renderDownloadPreviousResultButton() {
+  // Xóa nút cũ nếu có
+  let prevBtn = document.getElementById("download-previous-results-btn");
+  if (prevBtn) prevBtn.remove();
+
+  const prevData = localStorage.getItem("previousFlavourSyncAnswersManual");
+  if (prevData) {
+    prevBtn = document.createElement("button");
+    prevBtn.id = "download-previous-results-btn";
+    prevBtn.textContent = "Download Previous Result";
+    prevBtn.className =
+      "mb-4 px-6 py-3 bg-primary text-white rounded-lg transition-colors block";
+    prevBtn.onclick = function () {
+      let data = prevData;
+      try {
+        data = JSON.stringify(JSON.parse(prevData), null, 2); // format đẹp
+      } catch (e) {
+        // Nếu lỗi thì vẫn dùng chuỗi cũ
+      }
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FlavourSync_previous_manual_test.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    // Thêm nút vào đầu container
+    const container = document.querySelector(".container");
+    if (container) container.insertBefore(prevBtn, container.firstChild);
+  }
+}
+
 function continueAfterBreak() {
     if (state.currentPhase === 'flavor') {
         showScreen('test-screen');
@@ -1261,20 +1296,24 @@ function continueAfterBreak() {
 
 function startParticipant() {
     const participantNumber = parseInt(document.getElementById('participant-number').value);
-    
+      const oldAnswers = localStorage.getItem("flavourSyncAnswersManual");
+  if (oldAnswers) {
+    localStorage.setItem("previousFlavourSyncAnswersManual", oldAnswers);
+  }
     if (isNaN(participantNumber) || participantNumber < 1 || participantNumber > 16) {
         alert('Please enter a valid participant number (1-16)');
         return;
     }
     
     // Clear old data and reset answers for new participant
-    localStorage.removeItem('flavourSyncAnswers');
+    localStorage.removeItem('flavourSyncAnswersManual');
     state.answers = {};
     
     state.participantNumber = participantNumber;
     initializeTrialSequences();
     showScreen('welcome-screen');
     updateExperimentStatus();
+    renderDownloadPreviousResultButton();
 }
 
 function skipTrial() {
@@ -1325,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (connectBtn) connectBtn.disabled = true;
     }
     
-    const savedData = localStorage.getItem('flavourSyncAnswers');
+    const savedData = localStorage.getItem('flavourSyncAnswersManual');
     if (savedData) {
         try {
             state.answers = JSON.parse(savedData);
@@ -1354,5 +1393,47 @@ document.addEventListener('DOMContentLoaded', function() {
     addEventListenerIfExists('skip-survey-btn', 'click', skipSurvey);
     addEventListenerIfExists('continue-btn', 'click', continueAfterBreak);
     addEventListenerIfExists('download-results-btn', 'click', downloadResults);
+    
+    // Add skip trial and skip phase button event listeners
+    addEventListenerIfExists('skip-trial-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this trial? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                // Skip to end of current trial
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
+    addEventListenerIfExists('skip-phase-btn', 'click', () => {
+        if (confirm('Are you sure you want to skip this phase? All answers will be saved.')) {
+            if (state.currentPhase === 'flavor') {
+                const totalStimuli = experimentConfig.phases.flavor.stimuli.length;
+                // If in orthonasal, skip to end of last trial in orthonasal
+                if (state.currentFlavorPart === 'orthonasal') {
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                } else {
+                    // If in retronasal, skip to end
+                    state.currentFlavorTrial = 2;
+                    state.currentStimulus = totalStimuli;
+                    moveToNextStep();
+                }
+            } else {
+                const totalStimuli = experimentConfig.phases[state.currentPhase].stimuli.length;
+                state.currentTrial = 3;
+                state.currentStimulus = totalStimuli;
+                moveToNextStep();
+            }
+        }
+    });
+
     injectSurveyStylesOnce();
 });
