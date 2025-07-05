@@ -292,7 +292,7 @@ async function connectToDevice() {
     try {
         // Request port access
         port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 9600 });
+        await port.open({ baudRate: 115200 });
         
         // Set up reader
         reader = port.readable.getReader();
