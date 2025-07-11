@@ -349,6 +349,7 @@ function showQuestion(questionNumber) {
         textInput.rows = 3;
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
+        textInput.addEventListener('input', updateSubmitState);
         questionDiv.appendChild(textInput);
     } else if (question.type === 'slider') {
         const slider = document.createElement('input');
@@ -357,6 +358,7 @@ function showQuestion(questionNumber) {
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
         slider.id = `question-${question.id}`;
+        slider.addEventListener('input', updateSubmitState);
         
         if (question.id !== 'liking') {
             slider.className = 'vertical-slider';
@@ -407,13 +409,42 @@ function showQuestion(questionNumber) {
     // Action buttons
     const buttonRow = document.createElement('div');
     buttonRow.className = 'flex flex-wrap gap-4 mt-6 justify-center';
-    
+
     const submitButton = document.createElement('button');
     submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-lg font-semibold';
     submitButton.textContent = 'Submit Answer';
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
-    
+
+    // Helper to check if form is filled
+    function isFormFilled() {
+        if (question.type === 'text') {
+            const textInput = document.getElementById(`question-${question.id}`);
+            return textInput && textInput.value.trim().length > 0;
+        } else if (question.type === 'slider') {
+            const slider = document.getElementById(`question-${question.id}`);
+            // Consider moved if not at default value
+            return slider && slider.value != (question.min + question.max) / 2;
+        }
+        return false;
+    }
+
+    // Enable/disable submit button logic
+    function updateSubmitState() {
+        if (isFormFilled()) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
+    // Attach listeners
+    // Remove the getElementById calls - event listeners are already attached when elements are created above
+
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
 }
