@@ -855,8 +855,38 @@ function updateTestInstructions() {
 // Add global variable to track if a test was interrupted by disconnection
 let testInterruptedByDisconnection = false;
 
+// Utility to disable or enable all buttons on the page
+function setAllButtonsDisabled(disabled) {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => {
+        // Don't disable download or close buttons in popups
+        if (btn.id === 'download-current-btn' || btn.id === 'close-popup-btn' || btn.id === 'download-previous-results-btn') return;
+        // Always disable Move to Question Form if disabling all
+        if (btn.id === 'move-to-question-btn') {
+            btn.disabled = true;
+            if (disabled) {
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+            } else {
+                // Only enable if visible
+                if (btn.style.display === 'inline-block') {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                }
+            }
+            return;
+        }
+        btn.disabled = disabled;
+        if (disabled) {
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+        } else {
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    });
+}
+
 // Add this helper to show/hide the countdown overlay
 function showCountdown(seconds, onComplete) {
+    setAllButtonsDisabled(true);
     let countdownDiv = document.getElementById('countdown-overlay');
     if (!countdownDiv) {
         countdownDiv = document.createElement('div');
@@ -885,20 +915,60 @@ function showCountdown(seconds, onComplete) {
         } else {
             clearInterval(interval);
             countdownDiv.style.display = 'none';
+            setAllButtonsDisabled(false);
             if (onComplete) onComplete();
         }
     }, 1000);
 }
 
-// Patch activateTest to use countdown before sending command
+// Helper to show/hide the Move to Question Form button
+function ensureMoveToQuestionBtn() {
+    let moveBtn = document.getElementById('move-to-question-btn');
+    if (!moveBtn) {
+        moveBtn = document.createElement('button');
+        moveBtn.id = 'move-to-question-btn';
+        moveBtn.textContent = 'Move to Question Form';
+        moveBtn.className = 'px-8 py-4 bg-secondary text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold ml-4';
+        const btnContainer = document.getElementById('activate-btn').parentElement;
+        btnContainer.appendChild(moveBtn);
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+    }
+    moveBtn.style.display = 'inline-block';
+    moveBtn.disabled = false;
+    moveBtn.onclick = () => {
+        showSurvey(getCurrentStimulus());
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+        const activateBtn = document.getElementById('activate-btn');
+        if (activateBtn) activateBtn.textContent = 'Experience Stimulus';
+    };
+}
+
+// Patch activateTest to use countdown and show both buttons
 const originalActivateTest = activateTest;
-activateTest = function(...args) {
-    showCountdown(5, () => {
-        originalActivateTest.apply(this, args);
-    });
-};
+document.addEventListener('DOMContentLoaded', function() {
+    const activateBtn = document.getElementById('activate-btn');
+    if (activateBtn) {
+        function handleStimulusClick() {
+            showCountdown(5, () => {
+                originalActivateTest();
+                activateBtn.textContent = 'Try Again';
+                ensureMoveToQuestionBtn();
+            });
+        }
+        activateBtn.removeEventListener('click', activateTest);
+        activateBtn.addEventListener('click', handleStimulusClick);
+    }
+});
 
 async function activateTest() {
+    setAllButtonsDisabled(true);
+    const instructions = document.getElementById('test-instructions');
+    const originalText = instructions.getAttribute('data-original') || instructions.textContent;
+    instructions.setAttribute('data-original', originalText);
+    instructions.textContent = 'System is running... Please wait.';
+    instructions.classList.add('text-primary', 'font-medium');
     document.getElementById('activate-btn').disabled = true;
     testInterruptedByDisconnection = false; // Reset flag
     
@@ -925,11 +995,6 @@ async function activateTest() {
     console.log('Full Sequence for this trial:', sequence);
     const stimulus = getCurrentStimulus();
     const commands = getCurrentCommand();
-    const instructions = document.getElementById('test-instructions');
-    const originalText = instructions.textContent;
-    instructions.textContent = 'System is running... Please wait.';
-    instructions.classList.add('text-primary', 'font-medium');
-    
     try {
         if (Array.isArray(commands)) {
             for (const cmd of commands) {
@@ -938,7 +1003,6 @@ async function activateTest() {
                     testInterruptedByDisconnection = true;
                     throw new Error('Device disconnected during command execution');
                 }
-                
                 if (cmd.delay > 0) {
                     await new Promise(resolve => setTimeout(resolve, cmd.delay));
                 }
@@ -955,7 +1019,6 @@ async function activateTest() {
                 testInterruptedByDisconnection = true;
                 throw new Error('Device disconnected during command execution');
             }
-            
             console.log('Command sent:', commands);
             const success = await sendCommand(commands);
             if (!success) {
@@ -965,31 +1028,29 @@ async function activateTest() {
         } else {
             throw new Error('No commands available for current stimulus');
         }
-        
         // Check for disconnection before waiting
         if (!deviceConnected) {
             testInterruptedByDisconnection = true;
             throw new Error('Device disconnected during command execution');
         }
-        
         await new Promise(resolve => setTimeout(resolve, 5000));
-        
         // Final check for disconnection before proceeding
         if (!deviceConnected) {
             testInterruptedByDisconnection = true;
             throw new Error('Device disconnected during command execution');
         }
-        
+        // Restore original text and styling
         instructions.textContent = originalText;
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
-        showSurvey(stimulus);
+        setAllButtonsDisabled(false);
+        // showSurvey(stimulus); // Removed automatic call to showSurvey
     } catch (error) {
         console.error('Error in activateTest:', error);
         instructions.textContent = originalText;
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
-        
+        setAllButtonsDisabled(false);
         if (testInterruptedByDisconnection) {
             console.log('Test was interrupted by disconnection, waiting for reconnection');
             // Don't show error popup, just wait for reconnection
@@ -1208,6 +1269,13 @@ function submitSurvey() {
     // Move to next stimulus
     currentStimulusIndex++;
     moveToNextStep();
+
+    // Hide/disable Move to Question Form button after survey submit
+    const moveBtn = document.getElementById('move-to-question-btn');
+    if (moveBtn) {
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+    }
 }
 
 function continueAfterBreak() {
@@ -1268,6 +1336,25 @@ function showScreen(screenId) {
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.remove('hidden');
+    }
+
+    // Hide/disable Move to Question Form button on test screen entry
+    if (screenId === 'test-screen') {
+        let moveBtn = document.getElementById('move-to-question-btn');
+        if (moveBtn) {
+            moveBtn.style.display = 'none';
+            moveBtn.disabled = true;
+        } else {
+            // If not present, create and immediately hide/disable
+            moveBtn = document.createElement('button');
+            moveBtn.id = 'move-to-question-btn';
+            moveBtn.textContent = 'Move to Question Form';
+            moveBtn.className = 'px-8 py-4 bg-secondary text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold ml-4';
+            moveBtn.style.display = 'none';
+            moveBtn.disabled = true;
+            const btnContainer = document.getElementById('activate-btn')?.parentElement;
+            if (btnContainer) btnContainer.appendChild(moveBtn);
+        }
     }
 }
 
