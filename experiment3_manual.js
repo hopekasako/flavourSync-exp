@@ -244,31 +244,47 @@ function shuffleArray(array) {
 function showSurvey(stimulus, partName) {
     currentQuestionIndex = 0; // Reset to first question for new survey
     showScreen('survey-screen');
-    createSurveyQuestions(partName);
+    createSurveyQuestions();
 }
 
-function createSurveyQuestions(partName) {
+function createSurveyQuestions() {
     const phase = experimentConfig.phases[currentPhase];
     if (!phase || !phase.questions || phase.questions.length === 0) {
         console.error('No questions found for phase:', currentPhase);
         return;
     }
-    
+
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
-    
-    document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name} (${partName})`;
-    
-    // Create a copy of questions array and shuffle it
-    shuffledQuestions = [...phase.questions];
-    shuffleArray(shuffledQuestions);
-    
+
+    document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
+
+    // Create ordered questions array with fixed first 3 and randomized last 5
+    shuffledQuestions = createOrderedQuestions(phase.questions);
+
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
-    
+
     showQuestion(1);
+}
+
+function createOrderedQuestions(questions) {
+    const orderedQuestions = [];
+    // Fixed questions (e.g., liking, description, intensity)
+    const fixedQuestions = [
+        questions.find(q => q.id === 'liking'),
+        questions.find(q => q.id === 'description'),
+        questions.find(q => q.id === 'intensity')
+    ];
+    orderedQuestions.push(...fixedQuestions);
+
+    // Randomized questions (e.g., sweetness, sourness, familiarity, pleasantness)
+    const randomizedQuestions = shuffleArray(questions.filter(q => q.id !== 'liking' && q.id !== 'description' && q.id !== 'intensity'));
+    orderedQuestions.push(...randomizedQuestions);
+
+    return orderedQuestions;
 }
 
 function showQuestion(questionNumber) {

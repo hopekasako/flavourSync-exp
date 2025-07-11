@@ -263,22 +263,48 @@ function createSurveyQuestions() {
         console.error('No questions found for phase:', currentPhase);
         return;
     }
-    
+
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
-    
+
     document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
-    
-    // Create a copy of questions array and shuffle it
-    shuffledQuestions = [...phase.questions];
-    shuffleArray(shuffledQuestions);
-    
+
+    // Create ordered questions array with fixed first 3 and randomized last 5
+    shuffledQuestions = createOrderedQuestions(phase.questions);
+
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
-    
+
     showQuestion(1);
+}
+
+function createOrderedQuestions(allQuestions) {
+    // Find the fixed questions (first 3 in order)
+    const likingQuestion = allQuestions.find(q => q.id === 'liking');
+    const intensityQuestion = allQuestions.find(q => q.id === 'intensity');
+    const descriptionQuestion = allQuestions.find(q => q.id === 'description');
+
+    // Warn if any fixed questions are missing
+    if (!likingQuestion || !intensityQuestion || !descriptionQuestion) {
+        console.warn('One or more fixed questions are missing:', {likingQuestion, intensityQuestion, descriptionQuestion});
+    }
+    
+    // Find the taste questions (last 5 to be randomized)
+    const tasteQuestions = allQuestions.filter(q => 
+        q.id === 'sweetness' || 
+        q.id === 'sourness' || 
+        q.id === 'umami' || 
+        q.id === 'saltiness' || 
+        q.id === 'bitterness'
+    );
+    
+    // Shuffle the taste questions for each trial
+    shuffleArray(tasteQuestions);
+    
+    // Return ordered array: fixed first 3 + randomized last 5, filtering out any undefined
+    return [likingQuestion, intensityQuestion, descriptionQuestion, ...tasteQuestions].filter(Boolean);
 }
 
 function showQuestion(questionNumber) {
