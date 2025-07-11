@@ -1217,7 +1217,21 @@ function showQuestion(questionNumber) {
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
         slider.id = `question-${question.id}`;
-        slider.addEventListener('input', updateSubmitState);
+        
+        // Add flag to track if user has interacted with slider
+        slider.dataset.userInteracted = 'false';
+        
+        slider.addEventListener('input', function() {
+            // Mark as interacted when user moves the slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
+        
+        slider.addEventListener('mousedown', function() {
+            // Mark as interacted when user clicks on slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
         
         if (question.id !== 'liking') {
             slider.className = 'vertical-slider';
@@ -1284,8 +1298,8 @@ function showQuestion(questionNumber) {
             return textInput && textInput.value.trim().length > 0;
         } else if (question.type === 'slider') {
             const slider = document.getElementById(`question-${question.id}`);
-            // Consider moved if not at default value
-            return slider && slider.value != (question.min + question.max) / 2;
+            // Consider filled if user has interacted with the slider
+            return slider && slider.dataset.userInteracted === 'true';
         }
         return false;
     }
@@ -1348,7 +1362,19 @@ function submitSurvey() {
     
     // Save responses to current trial data
     const trialArr = experimentData.phases[currentPhase].trials[currentTrial];
-    const currentTrialData = trialArr[trialArr.length - 1];
+    
+    // Ensure we have a valid trial data object
+    let currentTrialData = trialArr[trialArr.length - 1];
+    if (!currentTrialData) {
+        // Create a new trial data object if none exists
+        currentTrialData = {
+            stimulus: getCurrentStimulus(),
+            responses: {},
+            responseTime: new Date().toISOString()
+        };
+        trialArr.push(currentTrialData);
+    }
+    
     currentTrialData.responses = responses;
     currentTrialData.responseTime = new Date().toISOString();
     
