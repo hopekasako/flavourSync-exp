@@ -229,12 +229,12 @@ const experimentData = {
         ],
         section_3_orthonasal: [ // Flavour Phase - Orthonasal
             { experiment_id: 1, commands: [
-                { command_string: "6 1 6000", delay: 0 },
-                { command_string: "6 1 3000 200", delay: 3000 }
+                { command_string: "6 1 5000", delay: 0 },
+                { command_string: "6 1 5000 200", delay: 5000 }
             ]},
             { experiment_id: 2, commands: [
-                { command_string: "5 1 6000", delay: 0 },
-                { command_string: "5 1 3000 200", delay: 3000 }
+                { command_string: "5 1 5000", delay: 0 },
+                { command_string: "5 1 5000 200", delay: 5000 }
             ]}
         ],
         section_3_retronasal: [ // Flavour Phase - Retronasal
@@ -1065,39 +1065,82 @@ async function activateTest() {
     const originalInstructionsText = instructions.textContent; // Store original text
     instructions.textContent = 'System is running... Please wait.';
     instructions.classList.add('text-primary', 'font-medium');
-    
     try {
         if (Array.isArray(commands)) {
-            for (const cmd of commands) {
-                if (cmd.delay > 0) {
-                    await new Promise(resolve => setTimeout(resolve, cmd.delay));
+            // For orthonasal, send both commands in sequence, 5s delay between and after
+            if (phase === 'flavour' && currentPart === 0 && commands.length === 2) {
+                // First command
+                const cmd1 = commands[0];
+                if (!deviceConnected) {
+                    testInterruptedByDisconnection = true;
+                    throw new Error('Device disconnected during command execution');
                 }
-                console.log('Command sent:', cmd.command_string);
-                const success = await sendCommand(cmd.command_string);
-                if (!success) {
-                    throw new Error('Failed to send command: ' + cmd.command_string);
+                console.log('Command sent:', cmd1.command_string);
+                const success1 = await sendCommand(cmd1.command_string);
+                if (!success1) {
+                    throw new Error('Failed to send command: ' + cmd1.command_string);
+                }
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                // Second command
+                const cmd2 = commands[1];
+                if (!deviceConnected) {
+                    testInterruptedByDisconnection = true;
+                    throw new Error('Device disconnected during command execution');
+                }
+                console.log('Command sent:', cmd2.command_string);
+                const success2 = await sendCommand(cmd2.command_string);
+                if (!success2) {
+                    throw new Error('Failed to send command: ' + cmd2.command_string);
+                }
+                await new Promise(resolve => setTimeout(resolve, 5000)); // Delay after second command
+                // Restore instructions to phase prompt (after all delays)
+                updateTestInstructions();
+                instructions.classList.remove('text-primary', 'font-medium');
+                document.getElementById('activate-btn').disabled = false;
+                setAllButtonsDisabled(false);
+                return;
+            } else {
+                // Handle other phases or retronasal as before
+                for (const cmd of commands) {
+                    if (!deviceConnected) {
+                        testInterruptedByDisconnection = true;
+                        throw new Error('Device disconnected during command execution');
+                    }
+                    if (cmd.delay > 0) {
+                        await new Promise(resolve => setTimeout(resolve, cmd.delay));
+                    }
+                    console.log('Command sent:', cmd.command_string);
+                    const success = await sendCommand(cmd.command_string);
+                    if (!success) {
+                        throw new Error('Failed to send command: ' + cmd.command_string);
+                    }
                 }
             }
         } else if (commands) {
+            // Check for disconnection before command
+            if (!deviceConnected) {
+                testInterruptedByDisconnection = true;
+                throw new Error('Device disconnected during command execution');
+            }
+            // Handle smell and taste phase commands
             console.log('Command sent:', commands);
             const success = await sendCommand(commands);
             if (!success) {
                 throw new Error('Failed to send command: ' + commands);
             }
+            await new Promise(resolve => setTimeout(resolve, 5000));
         } else {
             throw new Error('No commands available for current stimulus');
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Restore original text and styling
-        instructions.textContent = originalInstructionsText;
+        // Restore original text and styling (for non-orthonasal cases)
+        updateTestInstructions();
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
         setAllButtonsDisabled(false);
         // showSurvey(stimulus); // Removed automatic transition to survey
     } catch (error) {
         console.error('Error in activateTest:', error);
-        instructions.textContent = originalInstructionsText;
+        updateTestInstructions();
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
         setAllButtonsDisabled(false);
