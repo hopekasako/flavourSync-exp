@@ -918,6 +918,49 @@ function updateTestInstructions() {
     document.getElementById('test-instructions').textContent = `Please position your nose near the device and place the mouthpiece in your mouth. Click the button when ready to experience the flavor.`;
 }
 
+// Add this helper to show/hide the countdown overlay
+function showCountdown(seconds, onComplete) {
+    let countdownDiv = document.getElementById('countdown-overlay');
+    if (!countdownDiv) {
+        countdownDiv = document.createElement('div');
+        countdownDiv.id = 'countdown-overlay';
+        countdownDiv.style.position = 'fixed';
+        countdownDiv.style.right = '2rem';
+        countdownDiv.style.bottom = '2rem';
+        countdownDiv.style.background = 'rgba(139,92,246,0.95)';
+        countdownDiv.style.color = 'white';
+        countdownDiv.style.fontSize = '2rem';
+        countdownDiv.style.fontWeight = 'bold';
+        countdownDiv.style.padding = '1.5rem 2.5rem';
+        countdownDiv.style.borderRadius = '1.5rem';
+        countdownDiv.style.boxShadow = '0 4px 24px rgba(0,0,0,0.15)';
+        countdownDiv.style.zIndex = '9999';
+        countdownDiv.style.textAlign = 'center';
+        document.body.appendChild(countdownDiv);
+    }
+    countdownDiv.style.display = 'block';
+    let remaining = seconds;
+    countdownDiv.textContent = `Starting in ${remaining}...`;
+    const interval = setInterval(() => {
+        remaining--;
+        if (remaining > 0) {
+            countdownDiv.textContent = `Starting in ${remaining}...`;
+        } else {
+            clearInterval(interval);
+            countdownDiv.style.display = 'none';
+            if (onComplete) onComplete();
+        }
+    }, 1000);
+}
+
+// Patch activateTest to use countdown before sending command
+const originalActivateTest = activateTest;
+activateTest = function(...args) {
+    showCountdown(5, () => {
+        originalActivateTest.apply(this, args);
+    });
+};
+
 async function activateTest() {
     document.getElementById('activate-btn').disabled = true;
     const phase = currentPhase;
