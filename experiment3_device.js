@@ -1101,18 +1101,44 @@ async function activateTest() {
                 return;
             } else {
                 // Handle other phases or retronasal as before
-                for (const cmd of commands) {
-                    if (!deviceConnected) {
-                        testInterruptedByDisconnection = true;
-                        throw new Error('Device disconnected during command execution');
+                if (phase === 'flavour' && currentPart === 1 && Array.isArray(commands) && commands.length > 0) {
+                    // Retronasal: show 'System is running...' before command, send commands in sequence, restore after 5s delay
+                    instructions.textContent = 'System is running... Please wait.';
+                    instructions.classList.add('text-primary', 'font-medium');
+                    for (const cmd of commands) {
+                        if (!deviceConnected) {
+                            testInterruptedByDisconnection = true;
+                            throw new Error('Device disconnected during command execution');
+                        }
+                        if (cmd.delay > 0) {
+                            await new Promise(resolve => setTimeout(resolve, cmd.delay));
+                        }
+                        console.log('Command sent:', cmd.command_string);
+                        const success = await sendCommand(cmd.command_string);
+                        if (!success) {
+                            throw new Error('Failed to send command: ' + cmd.command_string);
+                        }
                     }
-                    if (cmd.delay > 0) {
-                        await new Promise(resolve => setTimeout(resolve, cmd.delay));
-                    }
-                    console.log('Command sent:', cmd.command_string);
-                    const success = await sendCommand(cmd.command_string);
-                    if (!success) {
-                        throw new Error('Failed to send command: ' + cmd.command_string);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    updateTestInstructions();
+                    instructions.classList.remove('text-primary', 'font-medium');
+                    document.getElementById('activate-btn').disabled = false;
+                    setAllButtonsDisabled(false);
+                    return;
+                } else {
+                    for (const cmd of commands) {
+                        if (!deviceConnected) {
+                            testInterruptedByDisconnection = true;
+                            throw new Error('Device disconnected during command execution');
+                        }
+                        if (cmd.delay > 0) {
+                            await new Promise(resolve => setTimeout(resolve, cmd.delay));
+                        }
+                        console.log('Command sent:', cmd.command_string);
+                        const success = await sendCommand(cmd.command_string);
+                        if (!success) {
+                            throw new Error('Failed to send command: ' + cmd.command_string);
+                        }
                     }
                 }
             }
