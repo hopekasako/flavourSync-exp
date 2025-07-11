@@ -79,13 +79,24 @@ const experimentConfig = {
     }
 };
 
-// Base sequences for taste phase (these will be randomized per participant)
-const baseSequences = {
-    taste: [
-        [1, 2, 3, 4, 5], // Trial 1
-        [2, 3, 1, 5, 4], // Trial 2
-        [4, 5, 2, 1, 3]  // Trial 3
-    ]
+// Use participantSequences from device version for manual test
+defaultParticipantSequences = {
+    1: { taste: [[1,2,3,4,5], [2,3,1,5,4], [4,5,2,1,3]] },
+    2: { taste: [[2,3,4,5,1], [3,4,5,1,2], [5,1,2,3,4]] },
+    3: { taste: [[3,4,5,1,2], [4,5,1,2,3], [1,2,3,4,5]] },
+    4: { taste: [[4,5,1,2,3], [5,1,2,3,4], [2,3,4,5,1]] },
+    5: { taste: [[5,1,2,3,4], [1,2,3,4,5], [3,4,5,1,2]] },
+    6: { taste: [[1,3,5,2,4], [2,4,1,3,5], [3,5,2,4,1]] },
+    7: { taste: [[2,4,1,3,5], [3,5,2,4,1], [4,1,3,5,2]] },
+    8: { taste: [[3,5,2,4,1], [4,1,3,5,2], [5,2,4,1,3]] },
+    9: { taste: [[4,1,3,5,2], [5,2,4,1,3], [1,3,5,2,4]] },
+    10: { taste: [[5,2,4,1,3], [1,3,5,2,4], [2,4,1,3,5]] },
+    11: { taste: [[1,4,2,5,3], [2,5,3,1,4], [3,1,4,2,5]] },
+    12: { taste: [[2,5,3,1,4], [3,1,4,2,5], [4,2,5,3,1]] },
+    13: { taste: [[3,1,4,2,5], [4,2,5,3,1], [5,3,1,4,2]] },
+    14: { taste: [[4,2,5,3,1], [5,3,1,4,2], [1,4,2,5,3]] },
+    15: { taste: [[5,3,1,4,2], [1,4,2,5,3], [2,5,3,1,4]] },
+    16: { taste: [[1,5,4,3,2], [2,1,5,4,3], [3,2,1,5,4]] }
 };
 
 // Global variables
@@ -149,11 +160,16 @@ function startParticipant() {
     showScreen('welcome-screen');
 }
 
+// In initializeTrialSequences, use participant number to select sequence
 function initializeTrialSequences() {
-    // Create randomized sequences for each trial
-    trialSequences = {
-        taste: baseSequences.taste.map(trial => [...trial].sort(() => Math.random() - 0.5))
-    };
+    const seq = defaultParticipantSequences[currentParticipant];
+    if (seq && seq.taste) {
+        // Only use the first trial for manual test
+        trialSequences = { taste: [seq.taste[0]] };
+    } else {
+        // fallback to default
+        trialSequences = { taste: [[1,2,3,4,5]] };
+    }
 }
 
 function startExperiment() {

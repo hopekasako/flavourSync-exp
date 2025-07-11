@@ -79,14 +79,37 @@ const experimentConfig = {
     }
 };
 
-// Base sequences for smell phase (these will be randomized per participant)
-const baseSequences = {
-    smell: [
-        [1, 2, 3, 4, 5], // Trial 1
-        [2, 3, 1, 5, 4], // Trial 2
-        [4, 5, 2, 1, 3]  // Trial 3
-    ]
+// Use participantSequences from device version for manual test
+const participantSequences = {
+    1: { smell: [[1,2,3,4,5], [2,3,1,5,4], [4,5,2,1,3]] },
+    2: { smell: [[2,3,4,5,1], [3,4,5,1,2], [5,1,2,3,4]] },
+    3: { smell: [[3,4,5,1,2], [4,5,1,2,3], [1,2,3,4,5]] },
+    4: { smell: [[4,5,1,2,3], [5,1,2,3,4], [2,3,4,5,1]] },
+    5: { smell: [[5,1,2,3,4], [1,2,3,4,5], [3,4,5,1,2]] },
+    6: { smell: [[1,3,5,2,4], [2,4,1,3,5], [3,5,2,4,1]] },
+    7: { smell: [[2,4,1,3,5], [3,5,2,4,1], [4,1,3,5,2]] },
+    8: { smell: [[3,5,2,4,1], [4,1,3,5,2], [5,2,4,1,3]] },
+    9: { smell: [[4,1,3,5,2], [5,2,4,1,3], [1,3,5,2,4]] },
+    10: { smell: [[5,2,4,1,3], [1,3,5,2,4], [2,4,1,3,5]] },
+    11: { smell: [[1,4,2,5,3], [2,5,3,1,4], [3,1,4,2,5]] },
+    12: { smell: [[2,5,3,1,4], [3,1,4,2,5], [4,2,5,3,1]] },
+    13: { smell: [[3,1,4,2,5], [4,2,5,3,1], [5,3,1,4,2]] },
+    14: { smell: [[4,2,5,3,1], [5,3,1,4,2], [1,4,2,5,3]] },
+    15: { smell: [[5,3,1,4,2], [1,4,2,5,3], [2,5,3,1,4]] },
+    16: { smell: [[1,5,4,3,2], [2,1,5,4,3], [3,2,1,5,4]] }
 };
+
+// In initializeTrialSequences, use participant number to select sequence
+function initializeTrialSequences() {
+    const seq = participantSequences[currentParticipant];
+    if (seq && seq.smell) {
+        // Only use the first trial for manual test
+        trialSequences = { smell: [seq.smell[0]] };
+    } else {
+        // fallback to default
+        trialSequences = { smell: [[1,2,3,4,5]] };
+    }
+}
 
 // Global variables
 let currentParticipant = null;
@@ -147,13 +170,6 @@ function startParticipant() {
     document.getElementById('participant-status').textContent = `Participant: ${currentParticipant}`;
     
     showScreen('welcome-screen');
-}
-
-function initializeTrialSequences() {
-    // Create randomized sequences for each trial
-    trialSequences = {
-        smell: baseSequences.smell.map(trial => [...trial].sort(() => Math.random() - 0.5))
-    };
 }
 
 function startExperiment() {

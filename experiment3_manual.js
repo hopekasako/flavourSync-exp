@@ -69,13 +69,12 @@ const experimentConfig = {
     }
 };
 
-// Base sequences for flavour phase (these will be randomized per participant)
-const baseSequences = {
-    flavour: [
-        [1, 2], // Trial 1
-        [2, 1], // Trial 2
-        [1, 2]  // Trial 3
-    ]
+// Use participantSequences from device version for manual test
+const participantSequences = {
+    1: { flavour: { orthonasal: [[1,2], [2,1]], retronasal: [[1,2], [2,1]] } },
+    2: { flavour: { orthonasal: [[2,1], [1,2]], retronasal: [[2,1], [1,2]] } },
+    3: { flavour: { orthonasal: [[1,2], [2,1]], retronasal: [[2,1], [1,2]] } },
+    4: { flavour: { orthonasal: [[2,1], [1,2]], retronasal: [[1,2], [2,1]] } },
 };
 
 // Global variables
@@ -141,10 +140,19 @@ function startParticipant() {
 }
 
 function initializeTrialSequences() {
-    // Create randomized sequences for each trial
-    trialSequences = {
-        flavour: baseSequences.flavour.map(trial => [...trial].sort(() => Math.random() - 0.5))
-    };
+    const seq = participantSequences[currentParticipant];
+    if (seq && seq.flavour) {
+        // Only use the first trial for each part for manual test
+        trialSequences = {
+            flavour: {
+                orthonasal: [seq.flavour.orthonasal[0]],
+                retronasal: [seq.flavour.retronasal[0]]
+            }
+        };
+    } else {
+        // fallback to default
+        trialSequences = { flavour: { orthonasal: [[1,2]], retronasal: [[1,2]] } };
+    }
 }
 
 function startExperiment() {
