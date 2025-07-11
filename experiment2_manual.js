@@ -79,13 +79,24 @@ const experimentConfig = {
     }
 };
 
-// Base sequences for taste phase (these will be randomized per participant)
-const baseSequences = {
-    taste: [
-        [1, 2, 3, 4, 5], // Trial 1
-        [2, 3, 1, 5, 4], // Trial 2
-        [4, 5, 2, 1, 3]  // Trial 3
-    ]
+// Use participantSequences from device version for manual test
+defaultParticipantSequences = {
+    1: { taste: [[1,2,3,4,5], [2,3,1,5,4], [4,5,2,1,3]] },
+    2: { taste: [[2,3,4,5,1], [3,4,5,1,2], [5,1,2,3,4]] },
+    3: { taste: [[3,4,5,1,2], [4,5,1,2,3], [1,2,3,4,5]] },
+    4: { taste: [[4,5,1,2,3], [5,1,2,3,4], [2,3,4,5,1]] },
+    5: { taste: [[5,1,2,3,4], [1,2,3,4,5], [3,4,5,1,2]] },
+    6: { taste: [[1,3,5,2,4], [2,4,1,3,5], [3,5,2,4,1]] },
+    7: { taste: [[2,4,1,3,5], [3,5,2,4,1], [4,1,3,5,2]] },
+    8: { taste: [[3,5,2,4,1], [4,1,3,5,2], [5,2,4,1,3]] },
+    9: { taste: [[4,1,3,5,2], [5,2,4,1,3], [1,3,5,2,4]] },
+    10: { taste: [[5,2,4,1,3], [1,3,5,2,4], [2,4,1,3,5]] },
+    11: { taste: [[1,4,2,5,3], [2,5,3,1,4], [3,1,4,2,5]] },
+    12: { taste: [[2,5,3,1,4], [3,1,4,2,5], [4,2,5,3,1]] },
+    13: { taste: [[3,1,4,2,5], [4,2,5,3,1], [5,3,1,4,2]] },
+    14: { taste: [[4,2,5,3,1], [5,3,1,4,2], [1,4,2,5,3]] },
+    15: { taste: [[5,3,1,4,2], [1,4,2,5,3], [2,5,3,1,4]] },
+    16: { taste: [[1,5,4,3,2], [2,1,5,4,3], [3,2,1,5,4]] }
 };
 
 // Global variables
@@ -149,11 +160,16 @@ function startParticipant() {
     showScreen('welcome-screen');
 }
 
+// In initializeTrialSequences, use participant number to select sequence
 function initializeTrialSequences() {
-    // Create randomized sequences for each trial
-    trialSequences = {
-        taste: baseSequences.taste.map(trial => [...trial].sort(() => Math.random() - 0.5))
-    };
+    const seq = defaultParticipantSequences[currentParticipant];
+    if (seq && seq.taste) {
+        // Only use the first trial for manual test
+        trialSequences = { taste: [seq.taste[0]] };
+    } else {
+        // fallback to default
+        trialSequences = { taste: [[1,2,3,4,5]] };
+    }
 }
 
 function startExperiment() {
@@ -205,10 +221,21 @@ function updateTestInstructions() {
     
     document.getElementById('section-title').textContent = `${experimentConfig.phases[currentPhase].name}`;
     document.getElementById('test-instructions').innerHTML = `
-      Please pick up each vial in the order they are arranged on the table and taste as long as you wish.
-      When finished, place the vial back in its original position before picking up the next one.
-      Once you have finished all vials, proceed to complete the form.
-      <br><br><b>Note:</b> While filling out the form, do <u>not</u> taste again.
+      1. Pick up each cup of water one by one placed on the table in the order from left to right.
+        <br>
+2. Taste all of the water prepared in each cup.
+        <br>
+3. Hold the liquid in your mouth and experience the flavor, without swallowing it.
+        <br>
+4. After experiencing the flavor, slowly spit or return the liquid to the cup on the table.
+        <br>
+5. Place the cup back in its original position.
+        <br>
+6. You can repeat the step and taste again as long as you wish before moving to the survey form.
+        <br>
+7. Select "Move to Survey Form" to answer the questions.
+        <br>
+      <br><b>Note:</b> While filling out the form, do <u>not</u> taste again.
     `;
 }
 
@@ -256,22 +283,48 @@ function createSurveyQuestions() {
         console.error('No questions found for phase:', currentPhase);
         return;
     }
-    
+
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
-    
+
     document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
-    
-    // Create a copy of questions array and shuffle it
-    shuffledQuestions = [...phase.questions];
-    shuffleArray(shuffledQuestions);
-    
+
+    // Create ordered questions array with fixed first 3 and randomized last 5
+    shuffledQuestions = createOrderedQuestions(phase.questions);
+
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
-    
+
     showQuestion(1);
+}
+
+function createOrderedQuestions(allQuestions) {
+    // Find the fixed questions (first 3 in order)
+    const likingQuestion = allQuestions.find(q => q.id === 'liking');
+    const intensityQuestion = allQuestions.find(q => q.id === 'intensity');
+    const descriptionQuestion = allQuestions.find(q => q.id === 'description');
+
+    // Warn if any fixed questions are missing
+    if (!likingQuestion || !intensityQuestion || !descriptionQuestion) {
+        console.warn('One or more fixed questions are missing:', {likingQuestion, intensityQuestion, descriptionQuestion});
+    }
+    
+    // Find the taste questions (last 5 to be randomized)
+    const tasteQuestions = allQuestions.filter(q => 
+        q.id === 'sweetness' || 
+        q.id === 'sourness' || 
+        q.id === 'umami' || 
+        q.id === 'saltiness' || 
+        q.id === 'bitterness'
+    );
+    
+    // Shuffle the taste questions for each trial
+    shuffleArray(tasteQuestions);
+    
+    // Return ordered array: fixed first 3 + randomized last 5, filtering out any undefined
+    return [likingQuestion, intensityQuestion, descriptionQuestion, ...tasteQuestions].filter(Boolean);
 }
 
 function showQuestion(questionNumber) {
@@ -300,6 +353,7 @@ function showQuestion(questionNumber) {
         textInput.rows = 3;
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
+        textInput.addEventListener('input', updateSubmitState);
         questionDiv.appendChild(textInput);
     } else if (question.type === 'slider') {
         const slider = document.createElement('input');
@@ -308,6 +362,21 @@ function showQuestion(questionNumber) {
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
         slider.id = `question-${question.id}`;
+        
+        // Add flag to track if user has interacted with slider
+        slider.dataset.userInteracted = 'false';
+        
+        slider.addEventListener('input', function() {
+            // Mark as interacted when user moves the slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
+        
+        slider.addEventListener('mousedown', function() {
+            // Mark as interacted when user clicks on slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
         
         if (question.id !== 'liking') {
             slider.className = 'vertical-slider';
@@ -362,9 +431,35 @@ function showQuestion(questionNumber) {
     const submitButton = document.createElement('button');
     submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-lg font-semibold';
     submitButton.textContent = 'Submit Answer';
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
-    
+
+    // Helper to check if form is filled
+    function isFormFilled() {
+        if (question.type === 'text') {
+            const textInput = document.getElementById(`question-${question.id}`);
+            return textInput && textInput.value.trim().length > 0;
+        } else if (question.type === 'slider') {
+            const slider = document.getElementById(`question-${question.id}`);
+            // Consider filled if user has interacted with the slider
+            return slider && slider.dataset.userInteracted === 'true';
+        }
+        return false;
+    }
+
+    // Enable/disable submit button logic
+    function updateSubmitState() {
+        if (isFormFilled()) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
 }
@@ -408,7 +503,20 @@ function submitSurvey() {
     const responses = surveyAnswers || {};
     
     // Save responses to current trial data
-    const currentTrialData = experimentData.phases[currentPhase].trials[currentTrial][experimentData.phases[currentPhase].trials[currentTrial].length - 1];
+    const trialArr = experimentData.phases[currentPhase].trials[currentTrial];
+    
+    // Ensure we have a valid trial data object
+    let currentTrialData = trialArr[trialArr.length - 1];
+    if (!currentTrialData) {
+        // Create a new trial data object if none exists
+        currentTrialData = {
+            stimulus: getCurrentStimulus(),
+            responses: {},
+            responseTime: new Date().toISOString()
+        };
+        trialArr.push(currentTrialData);
+    }
+    
     currentTrialData.responses = responses;
     currentTrialData.responseTime = new Date().toISOString();
     

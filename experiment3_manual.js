@@ -69,13 +69,12 @@ const experimentConfig = {
     }
 };
 
-// Base sequences for flavour phase (these will be randomized per participant)
-const baseSequences = {
-    flavour: [
-        [1, 2], // Trial 1
-        [2, 1], // Trial 2
-        [1, 2]  // Trial 3
-    ]
+// Use participantSequences from device version for manual test
+const participantSequences = {
+    1: { flavour: { orthonasal: [[1,2], [2,1]], retronasal: [[1,2], [2,1]] } },
+    2: { flavour: { orthonasal: [[2,1], [1,2]], retronasal: [[2,1], [1,2]] } },
+    3: { flavour: { orthonasal: [[1,2], [2,1]], retronasal: [[2,1], [1,2]] } },
+    4: { flavour: { orthonasal: [[2,1], [1,2]], retronasal: [[1,2], [2,1]] } },
 };
 
 // Global variables
@@ -141,10 +140,19 @@ function startParticipant() {
 }
 
 function initializeTrialSequences() {
-    // Create randomized sequences for each trial
-    trialSequences = {
-        flavour: baseSequences.flavour.map(trial => [...trial].sort(() => Math.random() - 0.5))
-    };
+    const seq = participantSequences[currentParticipant];
+    if (seq && seq.flavour) {
+        // Only use the first trial for each part for manual test
+        trialSequences = {
+            flavour: {
+                orthonasal: [seq.flavour.orthonasal[0]],
+                retronasal: [seq.flavour.retronasal[0]]
+            }
+        };
+    } else {
+        // fallback to default
+        trialSequences = { flavour: { orthonasal: [[1,2]], retronasal: [[1,2]] } };
+    }
 }
 
 function startExperiment() {
@@ -244,31 +252,47 @@ function shuffleArray(array) {
 function showSurvey(stimulus, partName) {
     currentQuestionIndex = 0; // Reset to first question for new survey
     showScreen('survey-screen');
-    createSurveyQuestions(partName);
+    createSurveyQuestions();
 }
 
-function createSurveyQuestions(partName) {
+function createSurveyQuestions() {
     const phase = experimentConfig.phases[currentPhase];
     if (!phase || !phase.questions || phase.questions.length === 0) {
         console.error('No questions found for phase:', currentPhase);
         return;
     }
-    
+
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
-    
-    document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name} (${partName})`;
-    
-    // Create a copy of questions array and shuffle it
-    shuffledQuestions = [...phase.questions];
-    shuffleArray(shuffledQuestions);
-    
+
+    document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
+
+    // Create ordered questions array with fixed first 3 and randomized last 5
+    shuffledQuestions = createOrderedQuestions(phase.questions);
+
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
-    
+
     showQuestion(1);
+}
+
+function createOrderedQuestions(questions) {
+    const orderedQuestions = [];
+    // Fixed questions (e.g., liking, description, intensity)
+    const fixedQuestions = [
+        questions.find(q => q.id === 'liking'),
+        questions.find(q => q.id === 'description'),
+        questions.find(q => q.id === 'intensity')
+    ];
+    orderedQuestions.push(...fixedQuestions);
+
+    // Randomized questions (e.g., sweetness, sourness, familiarity, pleasantness)
+    const randomizedQuestions = shuffleArray(questions.filter(q => q.id !== 'liking' && q.id !== 'description' && q.id !== 'intensity'));
+    orderedQuestions.push(...randomizedQuestions);
+
+    return orderedQuestions;
 }
 
 function showQuestion(questionNumber) {
@@ -297,6 +321,7 @@ function showQuestion(questionNumber) {
         textInput.rows = 3;
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
+        textInput.addEventListener('input', updateSubmitState);
         questionDiv.appendChild(textInput);
     } else if (question.type === 'slider') {
         const slider = document.createElement('input');
@@ -305,6 +330,21 @@ function showQuestion(questionNumber) {
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
         slider.id = `question-${question.id}`;
+        
+        // Add flag to track if user has interacted with slider
+        slider.dataset.userInteracted = 'false';
+        
+        slider.addEventListener('input', function() {
+            // Mark as interacted when user moves the slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
+        
+        slider.addEventListener('mousedown', function() {
+            // Mark as interacted when user clicks on slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
         
         if (question.id !== 'liking') {
             slider.className = 'vertical-slider';
@@ -359,9 +399,35 @@ function showQuestion(questionNumber) {
     const submitButton = document.createElement('button');
     submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-lg font-semibold';
     submitButton.textContent = 'Submit Answer';
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
-    
+
+    // Helper to check if form is filled
+    function isFormFilled() {
+        if (question.type === 'text') {
+            const textInput = document.getElementById(`question-${question.id}`);
+            return textInput && textInput.value.trim().length > 0;
+        } else if (question.type === 'slider') {
+            const slider = document.getElementById(`question-${question.id}`);
+            // Consider filled if user has interacted with the slider
+            return slider && slider.dataset.userInteracted === 'true';
+        }
+        return false;
+    }
+
+    // Enable/disable submit button logic
+    function updateSubmitState() {
+        if (isFormFilled()) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
 }
@@ -405,7 +471,20 @@ function submitSurvey() {
     const responses = surveyAnswers || {};
     
     // Save responses to current trial data
-    const currentTrialData = experimentData.phases[currentPhase].trials[currentTrial][experimentData.phases[currentPhase].trials[currentTrial].length - 1];
+    const trialArr = experimentData.phases[currentPhase].trials[currentTrial];
+    
+    // Ensure we have a valid trial data object
+    let currentTrialData = trialArr[trialArr.length - 1];
+    if (!currentTrialData) {
+        // Create a new trial data object if none exists
+        currentTrialData = {
+            stimulus: getCurrentStimulus(),
+            responses: {},
+            responseTime: new Date().toISOString()
+        };
+        trialArr.push(currentTrialData);
+    }
+    
     currentTrialData.responses = responses;
     currentTrialData.responseTime = new Date().toISOString();
     

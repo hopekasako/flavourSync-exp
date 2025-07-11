@@ -440,14 +440,10 @@ function updateConnectionStatus() {
     }
 }
 
-function updateDeviceStatus() {
-    const deviceStatus = document.getElementById('device-status');
-    if (deviceConnected) {
-        deviceStatus.textContent = 'Device connected and ready';
-        deviceStatus.className = 'text-green-600';
-    } else {
-        deviceStatus.textContent = 'Please connect your device to begin';
-        deviceStatus.className = 'text-green-600';
+function updateDeviceStatus(statusText) {
+    const statusElem = document.getElementById('device-status');
+    if (statusElem) {
+        statusElem.textContent = statusText;
     }
 }
 
@@ -859,7 +855,120 @@ function updateTestInstructions() {
 // Add global variable to track if a test was interrupted by disconnection
 let testInterruptedByDisconnection = false;
 
+// Utility to disable or enable all buttons on the page
+function setAllButtonsDisabled(disabled) {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => {
+        // Don't disable download or close buttons in popups
+        if (btn.id === 'download-current-btn' || btn.id === 'close-popup-btn' || btn.id === 'download-previous-results-btn') return;
+        // Always disable Move to Question Form if disabling all
+        if (btn.id === 'move-to-question-btn') {
+            btn.disabled = true;
+            if (disabled) {
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+            } else {
+                // Only enable if visible
+                if (btn.style.display === 'inline-block') {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                }
+            }
+            return;
+        }
+        btn.disabled = disabled;
+        if (disabled) {
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+        } else {
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    });
+}
+
+// Add this helper to show/hide the countdown overlay
+function showCountdown(seconds, onComplete) {
+    setAllButtonsDisabled(true);
+    let countdownDiv = document.getElementById('countdown-overlay');
+    if (!countdownDiv) {
+        countdownDiv = document.createElement('div');
+        countdownDiv.id = 'countdown-overlay';
+        countdownDiv.style.position = 'fixed';
+        countdownDiv.style.right = '2rem';
+        countdownDiv.style.bottom = '2rem';
+        countdownDiv.style.background = 'rgba(16,185,129,0.95)';
+        countdownDiv.style.color = 'white';
+        countdownDiv.style.fontSize = '2rem';
+        countdownDiv.style.fontWeight = 'bold';
+        countdownDiv.style.padding = '1.5rem 2.5rem';
+        countdownDiv.style.borderRadius = '1.5rem';
+        countdownDiv.style.boxShadow = '0 4px 24px rgba(0,0,0,0.15)';
+        countdownDiv.style.zIndex = '9999';
+        countdownDiv.style.textAlign = 'center';
+        document.body.appendChild(countdownDiv);
+    }
+    countdownDiv.style.display = 'block';
+    let remaining = seconds;
+    countdownDiv.textContent = `Starting in ${remaining}...`;
+    const interval = setInterval(() => {
+        remaining--;
+        if (remaining > 0) {
+            countdownDiv.textContent = `Starting in ${remaining}...`;
+        } else {
+            clearInterval(interval);
+            countdownDiv.style.display = 'none';
+            setAllButtonsDisabled(false);
+            if (onComplete) onComplete();
+        }
+    }, 1000);
+}
+
+// Helper to show/hide the Move to Question Form button
+function ensureMoveToQuestionBtn() {
+    let moveBtn = document.getElementById('move-to-question-btn');
+    if (!moveBtn) {
+        moveBtn = document.createElement('button');
+        moveBtn.id = 'move-to-question-btn';
+        moveBtn.textContent = 'Move to Question Form';
+        moveBtn.className = 'px-8 py-4 bg-secondary text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold ml-4';
+        const btnContainer = document.getElementById('activate-btn').parentElement;
+        btnContainer.appendChild(moveBtn);
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+    }
+    moveBtn.style.display = 'inline-block';
+    moveBtn.disabled = false;
+    moveBtn.onclick = () => {
+        showSurvey(getCurrentStimulus());
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+        const activateBtn = document.getElementById('activate-btn');
+        if (activateBtn) activateBtn.textContent = 'Experience Stimulus';
+    };
+}
+
+// Patch activateTest to use countdown and show both buttons
+const originalActivateTest = activateTest;
+document.addEventListener('DOMContentLoaded', function() {
+    const activateBtn = document.getElementById('activate-btn');
+    if (activateBtn) {
+        function handleStimulusClick() {
+            showCountdown(5, () => {
+                originalActivateTest();
+                activateBtn.textContent = 'Try Again';
+                ensureMoveToQuestionBtn();
+            });
+        }
+        activateBtn.removeEventListener('click', activateTest);
+        activateBtn.addEventListener('click', handleStimulusClick);
+    }
+});
+
 async function activateTest() {
+    setAllButtonsDisabled(true);
+    const instructions = document.getElementById('test-instructions');
+    const originalText = instructions.getAttribute('data-original') || instructions.textContent;
+    instructions.setAttribute('data-original', originalText);
+    instructions.textContent = 'System is running... Please wait.';
+    instructions.classList.add('text-primary', 'font-medium');
     document.getElementById('activate-btn').disabled = true;
     testInterruptedByDisconnection = false; // Reset flag
     
@@ -886,11 +995,6 @@ async function activateTest() {
     console.log('Full Sequence for this trial:', sequence);
     const stimulus = getCurrentStimulus();
     const commands = getCurrentCommand();
-    const instructions = document.getElementById('test-instructions');
-    const originalText = instructions.textContent;
-    instructions.textContent = 'System is running... Please wait.';
-    instructions.classList.add('text-primary', 'font-medium');
-    
     try {
         if (Array.isArray(commands)) {
             for (const cmd of commands) {
@@ -899,7 +1003,6 @@ async function activateTest() {
                     testInterruptedByDisconnection = true;
                     throw new Error('Device disconnected during command execution');
                 }
-                
                 if (cmd.delay > 0) {
                     await new Promise(resolve => setTimeout(resolve, cmd.delay));
                 }
@@ -916,7 +1019,6 @@ async function activateTest() {
                 testInterruptedByDisconnection = true;
                 throw new Error('Device disconnected during command execution');
             }
-            
             console.log('Command sent:', commands);
             const success = await sendCommand(commands);
             if (!success) {
@@ -926,31 +1028,29 @@ async function activateTest() {
         } else {
             throw new Error('No commands available for current stimulus');
         }
-        
         // Check for disconnection before waiting
         if (!deviceConnected) {
             testInterruptedByDisconnection = true;
             throw new Error('Device disconnected during command execution');
         }
-        
         await new Promise(resolve => setTimeout(resolve, 5000));
-        
         // Final check for disconnection before proceeding
         if (!deviceConnected) {
             testInterruptedByDisconnection = true;
             throw new Error('Device disconnected during command execution');
         }
-        
+        // Restore original text and styling
         instructions.textContent = originalText;
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
-        showSurvey(stimulus);
+        setAllButtonsDisabled(false);
+        // showSurvey(stimulus); // Removed automatic call to showSurvey
     } catch (error) {
         console.error('Error in activateTest:', error);
         instructions.textContent = originalText;
         instructions.classList.remove('text-primary', 'font-medium');
         document.getElementById('activate-btn').disabled = false;
-        
+        setAllButtonsDisabled(false);
         if (testInterruptedByDisconnection) {
             console.log('Test was interrupted by disconnection, waiting for reconnection');
             // Don't show error popup, just wait for reconnection
@@ -982,22 +1082,43 @@ function createSurveyQuestions() {
         console.error('No questions found for phase:', currentPhase);
         return;
     }
-    
+
     const surveyContainer = document.getElementById('survey-questions');
     surveyContainer.innerHTML = '';
-    
+
     document.getElementById('survey-title').textContent = `Post-Exposure Survey - ${phase.name}`;
-    
-    // Create a copy of questions array and shuffle it
-    shuffledQuestions = [...phase.questions];
-    shuffleArray(shuffledQuestions);
-    
+
+    // Create ordered questions array with fixed first 3 and randomized last 5
+    shuffledQuestions = createOrderedQuestions(phase.questions);
+
     // Show only the current question
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
     surveyContainer.appendChild(questionsContainer);
-    
+
     showQuestion(1);
+}
+
+function createOrderedQuestions(allQuestions) {
+    // Find the fixed questions (first 3 in order)
+    const likingQuestion = allQuestions.find(q => q.id === 'liking');
+    const intensityQuestion = allQuestions.find(q => q.id === 'intensity');
+    const descriptionQuestion = allQuestions.find(q => q.id === 'description');
+    
+    // Find the taste questions (last 5 to be randomized)
+    const tasteQuestions = allQuestions.filter(q => 
+        q.id === 'sweetness' || 
+        q.id === 'sourness' || 
+        q.id === 'umami' || 
+        q.id === 'saltiness' || 
+        q.id === 'bitterness'
+    );
+    
+    // Shuffle the taste questions
+    shuffleArray(tasteQuestions);
+    
+    // Return ordered array: fixed first 3 + randomized last 5
+    return [likingQuestion, intensityQuestion, descriptionQuestion, ...tasteQuestions];
 }
 
 function showQuestion(questionNumber) {
@@ -1026,6 +1147,7 @@ function showQuestion(questionNumber) {
         textInput.rows = 3;
         textInput.id = `question-${question.id}`;
         textInput.placeholder = 'Type your response here...';
+        textInput.addEventListener('input', updateSubmitState);
         questionDiv.appendChild(textInput);
     } else if (question.type === 'slider') {
         const slider = document.createElement('input');
@@ -1034,6 +1156,21 @@ function showQuestion(questionNumber) {
         slider.max = question.max;
         slider.value = (question.min + question.max) / 2;
         slider.id = `question-${question.id}`;
+        
+        // Add flag to track if user has interacted with slider
+        slider.dataset.userInteracted = 'false';
+        
+        slider.addEventListener('input', function() {
+            // Mark as interacted when user moves the slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
+        
+        slider.addEventListener('mousedown', function() {
+            // Mark as interacted when user clicks on slider
+            this.dataset.userInteracted = 'true';
+            updateSubmitState();
+        });
         
         if (question.id !== 'liking') {
             slider.className = 'vertical-slider';
@@ -1088,9 +1225,35 @@ function showQuestion(questionNumber) {
     const submitButton = document.createElement('button');
     submitButton.className = 'px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-lg font-semibold';
     submitButton.textContent = 'Submit Answer';
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
     submitButton.onclick = () => submitCurrentQuestion();
     buttonRow.appendChild(submitButton);
-    
+
+    // Helper to check if form is filled
+    function isFormFilled() {
+        if (question.type === 'text') {
+            const textInput = document.getElementById(`question-${question.id}`);
+            return textInput && textInput.value.trim().length > 0;
+        } else if (question.type === 'slider') {
+            const slider = document.getElementById(`question-${question.id}`);
+            // Consider filled if user has interacted with the slider
+            return slider && slider.dataset.userInteracted === 'true';
+        }
+        return false;
+    }
+
+    // Enable/disable submit button logic
+    function updateSubmitState() {
+        if (isFormFilled()) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
     questionDiv.appendChild(buttonRow);
     questionsContainer.appendChild(questionDiv);
 }
@@ -1135,7 +1298,19 @@ function submitSurvey() {
     
     // Save responses to current trial data
     const trialArr = experimentData.phases[currentPhase].trials[currentTrial];
-    const currentTrialData = trialArr[trialArr.length - 1];
+    
+    // Ensure we have a valid trial data object
+    let currentTrialData = trialArr[trialArr.length - 1];
+    if (!currentTrialData) {
+        // Create a new trial data object if none exists
+        currentTrialData = {
+            stimulus: getCurrentStimulus(),
+            responses: {},
+            responseTime: new Date().toISOString()
+        };
+        trialArr.push(currentTrialData);
+    }
+    
     currentTrialData.responses = responses;
     currentTrialData.responseTime = new Date().toISOString();
     
@@ -1148,6 +1323,13 @@ function submitSurvey() {
     // Move to next stimulus
     currentStimulusIndex++;
     moveToNextStep();
+
+    // Hide/disable Move to Question Form button after survey submit
+    const moveBtn = document.getElementById('move-to-question-btn');
+    if (moveBtn) {
+        moveBtn.style.display = 'none';
+        moveBtn.disabled = true;
+    }
 }
 
 function continueAfterBreak() {
@@ -1208,6 +1390,25 @@ function showScreen(screenId) {
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.remove('hidden');
+    }
+
+    // Hide/disable Move to Question Form button on test screen entry
+    if (screenId === 'test-screen') {
+        let moveBtn = document.getElementById('move-to-question-btn');
+        if (moveBtn) {
+            moveBtn.style.display = 'none';
+            moveBtn.disabled = true;
+        } else {
+            // If not present, create and immediately hide/disable
+            moveBtn = document.createElement('button');
+            moveBtn.id = 'move-to-question-btn';
+            moveBtn.textContent = 'Move to Question Form';
+            moveBtn.className = 'px-8 py-4 bg-secondary text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold ml-4';
+            moveBtn.style.display = 'none';
+            moveBtn.disabled = true;
+            const btnContainer = document.getElementById('activate-btn')?.parentElement;
+            if (btnContainer) btnContainer.appendChild(moveBtn);
+        }
     }
 }
 
