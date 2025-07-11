@@ -440,14 +440,10 @@ function updateConnectionStatus() {
     }
 }
 
-function updateDeviceStatus() {
-    const deviceStatus = document.getElementById('device-status');
-    if (deviceConnected) {
-        deviceStatus.textContent = 'Device connected and ready';
-        deviceStatus.className = 'text-green-600';
-    } else {
-        deviceStatus.textContent = 'Please connect your device to begin';
-        deviceStatus.className = 'text-green-600';
+function updateDeviceStatus(statusText) {
+    const statusElem = document.getElementById('device-status');
+    if (statusElem) {
+        statusElem.textContent = statusText;
     }
 }
 
