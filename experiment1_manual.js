@@ -205,10 +205,17 @@ function updateTestInstructions() {
     
     document.getElementById('section-title').textContent = `${experimentConfig.phases[currentPhase].name}`;
     document.getElementById('test-instructions').innerHTML = `
-      Please pick up each vial in the order they are arranged on the table and smell as long as you wish.
-      When finished, place the vial back in its original position before picking up the next one.
-      Once you have finished all vials, proceed to complete the form.
-      <br><br><b>Note:</b> While filling out the form, do <u>not</u> smell again.
+      1. Pick up each vial one by one in the order from left to right.
+        <br>
+2. Open the cap of the vial and hold it 2-4 cm from your nose.
+        <br>
+3. Smell the fragrance as long as you wish.
+        <br>
+4. Close the cap and place the vial back in its original position.
+        <br>
+5. Select "Move to Survey Form" to answer the questions.
+        <br>
+      <br><b>Note:</b> While filling out the form, do <u>not</u> smell again.
     `;
 }
 

@@ -205,10 +205,21 @@ function updateTestInstructions() {
     
     document.getElementById('section-title').textContent = `${experimentConfig.phases[currentPhase].name}`;
     document.getElementById('test-instructions').innerHTML = `
-      Please pick up each vial in the order they are arranged on the table and taste as long as you wish.
-      When finished, place the vial back in its original position before picking up the next one.
-      Once you have finished all vials, proceed to complete the form.
-      <br><br><b>Note:</b> While filling out the form, do <u>not</u> taste again.
+      1. Pick up each cup of water one by one placed on the table in the order from left to right.
+        <br>
+2. Taste all of the water prepared in each cup.
+        <br>
+3. Hold the liquid in your mouth and experience the flavor, without swallowing it.
+        <br>
+4. After experiencing the flavor, slowly spit or return the liquid to the cup on the table.
+        <br>
+5. Place the cup back in its original position.
+        <br>
+6. You can repeat the step and taste again as long as you wish before moving to the survey form.
+        <br>
+7. Select "Move to Survey Form" to answer the questions.
+        <br>
+      <br><b>Note:</b> While filling out the form, do <u>not</u> taste again.
     `;
 }
 
